@@ -13,15 +13,16 @@ export default function BandPage() {
         <title>PAPA | The Band</title>
         <meta
           name="description"
-          content="Meet the talented musicians who collaborate with PAPA to create the unique sound that blends afro inspired gospel, latino rhythms, and European influences."
+          content="Meet the talented musicians who collaborate with PAPA to create the unique sound that blends afro inspired gospel, latino rhythms, and European influences. Explore PAPA's discography including albums Distance, Legacy, Rafiki, Down In The Dirt and EPs Zeno and Paradox."
         />
         <meta
           name="keywords"
-          content="PAPA, band members, musicians, collaborators, afro gospel, latino rhythms, music artists"
+          content="PAPA, band members, musicians, collaborators, afro gospel, latino rhythms, music artists, Distance, Legacy, Rafiki, Down In The Dirt, Zeno, Paradox, lyrics"
         />
       </Head>
 
       <Layout>
+        {/* Original Band Content */}
         <div className="slides" ref={slidesRef}>
           <div className="slide">
             <div
@@ -77,6 +78,8 @@ export default function BandPage() {
             Meet The Band
           </button>
         </div>
+
+
       </Layout>
     </>
   );

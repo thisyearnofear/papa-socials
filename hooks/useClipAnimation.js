@@ -129,6 +129,7 @@ export function useClipAnimation() {
     clipImageRef,
     slidesRef,
     titleRef,
-    toggleEffect
+    toggleEffect,
+    isEffectActive: !isOpen // When isOpen is false, the effect is active (slider is shown)
   };
 }

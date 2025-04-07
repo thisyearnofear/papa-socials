@@ -1,0 +1,343 @@
+/* Discography Styles */
+.discography-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.95);
+  overflow-y: auto;
+}
+
+/* Nested discography sections (for albums/EPs categories) */
+.discography-container .discography-section,
+.discography-container .discography-category {
+  position: relative;
+  height: auto;
+  margin-bottom: 3rem;
+  background-color: transparent;
+  overflow: visible;
+}
+
+.discography-category h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.discography-container {
+  padding: 5vh 5vw;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Discography Button */
+.discography-button {
+  position: relative;
+  margin-top: 1rem;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.discography-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.discography-button.active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.discography-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.discography-header h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+}
+
+.discography-back {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.discography-back:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.discography-section {
+  margin-bottom: 3rem;
+}
+
+.discography-section h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.discography-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Styles for the music page discography */
+.discography-section h3 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.discography-section h2 {
+  font-size: 2rem;
+  margin: 0;
+  color: #fff;
+}
+
+.discography-item {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.discography-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.discography-item.active {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+}
+
+.discography-item__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.discography-item.active .discography-item__inner {
+  flex-direction: row;
+}
+
+.discography-item__cover {
+  aspect-ratio: 1/1;
+  background-size: cover;
+  background-position: center;
+}
+
+.discography-item.active .discography-item__cover {
+  flex: 0 0 300px;
+}
+
+.discography-item__info {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.discography-item h3 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+}
+
+.discography-item__type {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.discography-item__description {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.discography-item__tracks {
+  margin-top: 1rem;
+}
+
+.discography-item__tracks h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.discography-item__tracks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.discography-item__tracks li {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discography-item__tracks li:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lyrics-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  background: rgba(20, 20, 20, 0.95);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  z-index: 1000;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.lyrics-modal h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.lyrics-content {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+
+.lyrics-placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.track-number {
+  display: inline-block;
+  min-width: 1.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .discography-item.active {
+    grid-template-columns: 1fr;
+  }
+  
+  .discography-item.active .discography-item__inner {
+    flex-direction: column;
+  }
+  
+  .discography-item.active .discography-item__cover {
+    flex: 0 0 auto;
+    aspect-ratio: 1/1;
+  }
+  
+  .discography-item__tracks ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .discography-item.active {
+    grid-template-columns: 1fr;
+  }
+  
+  .discography-item.active .discography-item__inner {
+    flex-direction: column;
+  }
+  
+  .discography-item.active .discography-item__cover {
+    flex: none;
+    aspect-ratio: 1/1;
+  }
+  
+  .discography-item__tracks ul {
+    grid-template-columns: 1fr;
+  }
+}
