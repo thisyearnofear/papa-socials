@@ -3,7 +3,7 @@ import Layout from "../../components/Layout";
 import { useClipAnimation } from "../../hooks/useClipAnimation";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { allReleases, albums, eps } from "../../data/lyrics";
+import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
 
 export default function MusicPage() {
