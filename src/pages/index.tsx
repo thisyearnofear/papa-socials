@@ -128,7 +128,7 @@ export default function MusicPage() {
               boxShadow: "0 0 0 3px rgba(245, 212, 145, 0.5), 0 5px 10px rgba(0, 0, 0, 0.3)"
             }}
           >
-            <span style={{ position: "relative", zIndex: 2 }}>EXPLORE MUSIC</span>
+            <span style={{ position: "relative", zIndex: 2 }}>EXPLORE</span>
           </motion.button>
         </div>
         

@@ -97,7 +97,7 @@ export default function Navigation() {
                 href="/"
                 className={router.pathname === "/" ? "active" : ""}
               >
-                Music & Lyrics
+                Music
               </Link>
               <Link
                 href="/social"
