@@ -5,8 +5,9 @@ export function useClipAnimation() {
   const clipImageRef = useRef(null);
   const slidesRef = useRef(null);
   const titleRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [stage, setStage] = useState('initial'); // 'initial', 'grid', or 'discography'
   const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedSlide, setSelectedSlide] = useState(null);
   
   useEffect(() => {
     // Initialize Splitting.js
@@ -24,17 +25,27 @@ export function useClipAnimation() {
   }, []);
   
   const showSlider = () => {
-    if (isAnimating || !window.gsap) return;
+    if (isAnimating || !window.gsap || stage !== 'initial') return;
     setIsAnimating(true);
     
     const titleChars = titleRef.current.querySelectorAll('.char');
+    const slides = slidesRef.current.querySelectorAll('.slide');
     
     window.gsap.timeline({
       defaults: {
         duration: 1.2,
         ease: 'power4.inOut',
       },
-      onComplete: () => setIsAnimating(false)
+      onComplete: () => {
+        setIsAnimating(false);
+        setStage('grid');
+        
+        // Make slides clickable
+        slides.forEach((slide, index) => {
+          slide.style.cursor = 'pointer';
+          slide.onclick = () => handleSlideClick(index);
+        });
+      }
     })
     .addLabel('start', 0)
     .set(slidesRef.current, {perspective: 1000})
@@ -46,7 +57,7 @@ export function useClipAnimation() {
     .to(clipImageRef.current, {
       scale: .8
     }, 'start')
-    .fromTo(slidesRef.current.querySelectorAll('.slide:not(.slide--current)'), {
+    .fromTo(slides, {
       opacity: 0,
       z: 600
     }, {
@@ -70,17 +81,28 @@ export function useClipAnimation() {
   };
   
   const showPreview = () => {
-    if (isAnimating || !window.gsap) return;
+    if (isAnimating || !window.gsap || stage === 'initial') return;
     setIsAnimating(true);
     
     const titleChars = titleRef.current.querySelectorAll('.char');
+    const slides = slidesRef.current.querySelectorAll('.slide');
     
+    // Remove click handlers
+    slides.forEach(slide => {
+      slide.style.cursor = 'default';
+      slide.onclick = null;
+    });
+
     window.gsap.timeline({
       defaults: {
         duration: 1.2,
         ease: 'power4.inOut',
       },
-      onComplete: () => setIsAnimating(false)
+      onComplete: () => {
+        setIsAnimating(false);
+        setStage('initial');
+        setSelectedSlide(null);
+      }
     })
     .addLabel('start', 0)
     .set(titleChars, {transformOrigin: '50% 0%'})
@@ -90,7 +112,7 @@ export function useClipAnimation() {
     .to(clipImageRef.current, {
       scale: 1
     }, 'start')
-    .to(slidesRef.current.querySelectorAll('.slide:not(.slide--current)'), {
+    .to(slides, {
       duration: 0.8,
       ease: 'power3.inOut',
       opacity: 0,
@@ -112,16 +134,104 @@ export function useClipAnimation() {
     }, 'start');
   };
   
+  const handleSlideClick = (index) => {
+    if (isAnimating || stage !== 'grid') return;
+    setIsAnimating(true);
+    
+    const container = slidesRef.current;
+    if (!container) return;
+
+    const slides = container.querySelectorAll('.slide');
+    const coverTitle = titleRef.current;
+    const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
+    const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
+    
+    // First, blur and scale all slides with enhanced effect
+    const tl = window.gsap.timeline({
+      defaults: { duration: 0.7, ease: 'power3.out' },
+      onComplete: () => {
+        // Delay setting the stage to ensure animation completes first
+        setTimeout(() => {
+          setIsAnimating(false);
+          setSelectedSlide(index);
+          setStage('discography');
+        }, 100);
+      }
+    });
+    
+    // Fade out and blur non-selected slides more intensely
+    tl.to(slides, {
+      opacity: 0.15, // More transparent
+      scale: 0.9,    // Scale down more
+      filter: 'blur(15px)', // More blur
+      stagger: { amount: 0.2, from: index }
+    })
+    // Highlight the selected slide
+    .to(slides[index], {
+      opacity: 0.8,  // Still slightly transparent to help discography visibility
+      scale: 1.15,   // Scale up more
+      filter: 'blur(0px)',
+      duration: 0.5,
+      ease: 'power2.out'
+    }, '-=0.5')
+    // Move selected slide up
+    .to(slides[index], {
+      y: -40,        // Move up more
+      duration: 0.5,
+      ease: 'power2.out'
+    }, '-=0.5')
+    // Hide the cover title, description, and button
+    .to([coverTitle, coverDescription, coverButton], {
+      opacity: 0,
+      y: -20,
+      duration: 0.4,
+      ease: 'power2.out',
+      stagger: 0.05
+    }, '-=0.6');
+  };
+
   const toggleEffect = () => {
     if (isAnimating) return;
+    setIsAnimating(true);
     
-    if (isOpen) {
+    if (stage === 'initial') {
+      // Initial to grid animation
       showSlider();
-    } else {
+    } else if (stage === 'grid') {
+      // Grid to initial animation
       showPreview();
+    } else if (stage === 'discography') {
+      // Discography to grid animation
+      const coverTitle = titleRef.current;
+      const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
+      const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
+      
+      const tl = window.gsap.timeline({
+        onComplete: () => {
+          setIsAnimating(false);
+          setStage('grid');
+        },
+      });
+
+      // Show the cover title, description, and button first
+      tl.to([coverTitle, coverDescription, coverButton], {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        ease: 'power2.out',
+        stagger: 0.05
+      })
+      // Then reset slides
+      .to(slidesRef.current.querySelectorAll('.slide'), {
+        duration: 0.5,
+        ease: 'power3.out',
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        stagger: 0.05,
+      }, '-=0.3');
     }
-    
-    setIsOpen(!isOpen);
   };
   
   return {
@@ -130,6 +240,9 @@ export function useClipAnimation() {
     slidesRef,
     titleRef,
     toggleEffect,
-    isEffectActive: !isOpen // When isOpen is false, the effect is active (slider is shown)
+    selectedSlide,
+    stage,
+    handleSlideClick,
+    isEffectActive: stage !== 'initial'
   };
 }

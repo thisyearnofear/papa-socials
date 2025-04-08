@@ -7,24 +7,20 @@ import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
 
 export default function MusicPage() {
-  const { clipRef, clipImageRef, slidesRef, titleRef, toggleEffect, isEffectActive } =
-    useClipAnimation();
-  const [showDiscography, setShowDiscography] = useState(false);
+  const { 
+    clipRef, 
+    clipImageRef, 
+    slidesRef, 
+    titleRef, 
+    toggleEffect, 
+    stage,
+    selectedSlide,
+    handleSlideClick 
+  } = useClipAnimation();
+  
   const [activeRelease, setActiveRelease] = useState<string | null>(null);
   
-  // Show discography after animation completes
-  useEffect(() => {
-    if (isEffectActive) {
-      const timer = setTimeout(() => {
-        setShowDiscography(true);
-      }, 1200); // Match with animation duration
-      return () => clearTimeout(timer);
-    } else {
-      setShowDiscography(false);
-      setActiveRelease(null);
-    }
-  }, [isEffectActive]);
-  
+  // Handle release selection in discography view
   const handleReleaseSelect = (releaseId: string) => {
     setActiveRelease(releaseId === activeRelease ? null : releaseId);
   };
@@ -45,36 +41,25 @@ export default function MusicPage() {
 
       <Layout>
         <div className="slides" ref={slidesRef}>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo1/2.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo1/3.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide slide--current">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo1/1.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo1/4.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo1/5.jpg)" }}
-            ></div>
-          </div>
+          {[2, 3, 1, 4, 5].map((num, index) => (
+            <motion.div 
+              key={num}
+              className={`slide ${num === 1 ? 'slide--current' : ''}`}
+              onClick={() => stage === 'grid' && handleSlideClick(index)}
+              style={{
+                cursor: stage === 'grid' ? 'pointer' : 'default',
+              }}
+              whileHover={stage === 'grid' ? {
+                scale: 1.02,
+                transition: { duration: 0.2 }
+              } : {}}
+            >
+              <div
+                className="slide__img"
+                style={{ backgroundImage: `url(/img/demo1/${num}.jpg)` }}
+              />
+            </motion.div>
+          ))}
         </div>
 
         <div className="clip" ref={clipRef}>
@@ -104,29 +89,48 @@ export default function MusicPage() {
           </motion.button>
         </div>
         
-        {/* Discography Section - appears after animation effect */}
+        {/* Discography Section - appears after slide selection */}
         <AnimatePresence>
-          {showDiscography && (
+          {stage === 'discography' && (
             <motion.div 
-              className="discography-section visible"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+              className="discography-container"
+              initial={{ 
+                opacity: 0, 
+                y: 50,
+                scale: 0.95
+              }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                scale: 1,
+                transition: {
+                  duration: 0.9,
+                  ease: 'easeOut',
+                  delay: 0.2 // Slight delay to ensure slide animation completes
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: -50,
+                scale: 0.95,
+                transition: {
+                  duration: 0.6,
+                  ease: 'easeInOut'
+                }
+              }}
             >
-              <div className="discography-container">
-                <div className="discography-header">
-                  <h2>Discography</h2>
-                  <button className="discography-back" onClick={toggleEffect}>
-                    <svg width="16" height="16" viewBox="0 0 24 24">
-                      <path 
-                        fill="currentColor" 
-                        d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                      />
-                    </svg>
-                    Back to Music
-                  </button>
-                </div>
+              <div className="discography-header">
+                <h2>Discography</h2>
+                <button className="discography-back" onClick={toggleEffect}>
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path 
+                      fill="currentColor" 
+                      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                    />
+                  </svg>
+                  Back to Music
+                </button>
+              </div>
                 
                 <div className="discography-category">
                   <h3>Albums</h3>
@@ -155,7 +159,6 @@ export default function MusicPage() {
                     ))}
                   </div>
                 </div>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
