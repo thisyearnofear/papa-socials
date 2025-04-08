@@ -146,16 +146,34 @@ export function useClipAnimation() {
     const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
     const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
     
+    // Ensure discography container is ready to be visible
+    const discographyContainer = document.querySelector('.discography-container');
+    if (discographyContainer) {
+      // Make sure it's visible but transparent initially
+      window.gsap.set(discographyContainer, { visibility: 'visible', opacity: 0 });
+    }
+    
     // First, blur and scale all slides with enhanced effect
     const tl = window.gsap.timeline({
       defaults: { duration: 0.7, ease: 'power3.out' },
       onComplete: () => {
-        // Delay setting the stage to ensure animation completes first
-        setTimeout(() => {
+        // Make discography visible immediately
+        if (discographyContainer) {
+          window.gsap.to(discographyContainer, {
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.out',
+            onComplete: () => {
+              setIsAnimating(false);
+              setSelectedSlide(index);
+              setStage('discography');
+            }
+          });
+        } else {
           setIsAnimating(false);
           setSelectedSlide(index);
           setStage('discography');
-        }, 100);
+        }
       }
     });
     
@@ -205,6 +223,7 @@ export function useClipAnimation() {
       const coverTitle = titleRef.current;
       const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
       const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
+      const discographyContainer = document.querySelector('.discography-container');
       
       const tl = window.gsap.timeline({
         onComplete: () => {
@@ -213,14 +232,24 @@ export function useClipAnimation() {
         },
       });
 
-      // Show the cover title, description, and button first
+      // First hide the discography container
+      if (discographyContainer) {
+        tl.to(discographyContainer, {
+          opacity: 0,
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+      }
+      
+      // Show the cover title, description, and button
       tl.to([coverTitle, coverDescription, coverButton], {
         opacity: 1,
         y: 0,
         duration: 0.5,
         ease: 'power2.out',
         stagger: 0.05
-      })
+      }, discographyContainer ? '-=0.1' : '0')
+      
       // Then reset slides
       .to(slidesRef.current.querySelectorAll('.slide'), {
         duration: 0.5,

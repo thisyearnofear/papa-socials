@@ -46,14 +46,15 @@ const DiscographyItem = ({ release, isActive, onSelect }) => {
 
   // Enhanced animations for the discography item
   const itemVariants = {
-    initial: { opacity: 0, scale: 0.95, y: 20 },
-    animate: { 
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
+    visible: { 
       opacity: 1, 
       scale: 1, 
       y: 0,
       transition: { 
-        duration: 0.8,
-        ease: 'easeOut'
+        duration: 0.5,
+        ease: 'easeOut',
+        delay: 0.1 // Small delay to ensure container animation completes first
       }
     },
     hover: { 
@@ -69,7 +70,6 @@ const DiscographyItem = ({ release, isActive, onSelect }) => {
       opacity: 1,
       transition: { 
         duration: 0.6,
-        ease: 'easeInOut'
       }
     }
   };
@@ -128,13 +128,16 @@ const DiscographyItem = ({ release, isActive, onSelect }) => {
 
 
   return (
-    <motion.div
-      className={`discography-item ${isActive ? 'active' : ''}`}
+    <motion.div 
+      className={`discography-item ${isActive ? 'discography-item--active' : ''}`}
       onClick={() => onSelect(release.id)}
-      initial="initial"
-      whileHover="hover"
-      animate={isActive ? "active" : "initial"}
       variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      layout
+      style={{ zIndex: 30 }} // Ensure it's above other elements
+      whileHover="hover"
     >
       <div className="discography-item__inner">
         <motion.div

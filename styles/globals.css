@@ -133,21 +133,105 @@ a:hover {
   font-weight: 500;
 }
 
+/* Music-themed button styling */
 .cover__button {
   background: var(--color-bg-button);
   color: var(--color-button);
   border: 0;
   border-radius: 2rem;
-  padding: 1rem 2rem;
-  font-weight: 600;
+  padding: 1.2rem 3rem;
+  font-weight: 700;
   cursor: pointer;
   pointer-events: auto;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 0 4px rgba(245, 212, 145, 0.3), 0 8px 25px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.05em;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  /* Consciousness flashing effect */
+  animation: consciousnessFlash 3s infinite;
+  /* Ensure high contrast against background */
+  z-index: 200;
+  /* Start in hovered state */
+  transform: translateY(-5px) scale(1.08);
+}
+
+/* Vinyl record design behind button */
+.cover__button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
 }
 
 .cover__button:hover {
-  background: var(--color-link-hover);
-  transform: translateY(-2px);
+  background: #f5d491;
+  color: #2a1e30;
+  transform: translateY(-5px) scale(1.08);
+  box-shadow: 0 0 0 5px rgba(245, 212, 145, 0.5), 0 15px 30px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+
+
+.cover__button:hover::after {
+  opacity: 1;
+}
+
+.cover__button:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 0 0 3px rgba(245, 212, 145, 0.5), 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Ripple effect on click */
+.cover__button .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  z-index: -1;
+}
+
+/* Animations */
+@keyframes consciousnessFlash {
+  0% {
+    transform: translateY(-5px) scale(1.08);
+    box-shadow: 0 0 0 8px rgba(245, 212, 145, 0.6), 0 15px 30px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    filter: brightness(1.2);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 0 0 4px rgba(245, 212, 145, 0.3), 0 8px 15px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.3);
+    filter: brightness(0.95);
+  }
+  100% {
+    transform: translateY(-5px) scale(1.08);
+    box-shadow: 0 0 0 8px rgba(245, 212, 145, 0.6), 0 15px 30px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
 }
 
 /* Clip and slides styles */

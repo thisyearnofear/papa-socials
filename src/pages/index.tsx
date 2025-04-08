@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useClipAnimation } from "../../hooks/useClipAnimation";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
@@ -14,7 +14,6 @@ export default function MusicPage() {
     titleRef, 
     toggleEffect, 
     stage,
-    selectedSlide,
     handleSlideClick 
   } = useClipAnimation();
   
@@ -31,7 +30,7 @@ export default function MusicPage() {
         <title>PAPA | Music</title>
         <meta
           name="description"
-          content="British-Kenyan singer-songwriter PAPA's music beams with afro inspired gospel, latino rhythms alongside that europa spiritus animus."
+          content="beaming with afro inspired gospel, latino rhythms alongside that europa spiritus animus."
         />
         <meta
           name="keywords"
@@ -75,17 +74,61 @@ export default function MusicPage() {
             Music
           </h2>
           <p className="cover__description">
-            British-Kenyan singer-songwriter whose music beams with afro
-            inspired gospel, latino rhythms alongside that europa spiritus
-            animus.
+            beaming with afro
+           soul, latin rhythms, europa animus, funk & blues.
           </p>
           <motion.button 
             className="cover__button unbutton" 
-            onClick={toggleEffect}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              // Create ripple effect
+              const button = e.currentTarget;
+              const ripple = document.createElement('span');
+              const rect = button.getBoundingClientRect();
+              const size = Math.max(rect.width, rect.height);
+              const x = e.clientX - rect.left - size / 2;
+              const y = e.clientY - rect.top - size / 2;
+              
+              ripple.className = 'ripple';
+              ripple.style.width = ripple.style.height = `${size}px`;
+              ripple.style.left = `${x}px`;
+              ripple.style.top = `${y}px`;
+              
+              button.appendChild(ripple);
+              
+              // Stop the flashing animation when clicked
+              button.style.animation = 'none';
+              
+              // Add a final flash effect
+              button.animate([
+                { filter: 'brightness(1.5)', transform: 'translateY(-5px) scale(1.12)' },
+                { filter: 'brightness(1.2)', transform: 'translateY(-5px) scale(1.08)' }
+              ], {
+                duration: 300,
+                easing: 'ease-out'
+              });
+              
+              // Remove ripple after animation completes
+              setTimeout(() => ripple.remove(), 600);
+              
+              // Call the original toggle effect
+              toggleEffect();
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ 
+              opacity: 1,
+              y: 0,
+              transition: { 
+                duration: 1.2,
+                ease: "easeOut"
+              }
+            }}
+            whileTap={{ 
+              scale: 0.95, 
+              y: 2, 
+              boxShadow: "0 0 0 3px rgba(245, 212, 145, 0.5), 0 5px 10px rgba(0, 0, 0, 0.3)"
+            }}
           >
-            Explore Music
+            <span style={{ position: "relative", zIndex: 2 }}>EXPLORE MUSIC</span>
           </motion.button>
         </div>
         
@@ -118,17 +161,12 @@ export default function MusicPage() {
                   ease: 'easeInOut'
                 }
               }}
+              style={{ visibility: 'visible', opacity: 1 }}
             >
               <div className="discography-header">
-                <h2>Discography</h2>
+                <h2>DISCOGRAPHY</h2>
                 <button className="discography-back" onClick={toggleEffect}>
-                  <svg width="16" height="16" viewBox="0 0 24 24">
-                    <path 
-                      fill="currentColor" 
-                      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                    />
-                  </svg>
-                  Back to Music
+                  ← Back to music
                 </button>
               </div>
                 
