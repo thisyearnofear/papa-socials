@@ -131,7 +131,7 @@ export default function Navigation() {
                 : "frame__demo"
             }
           >
-            Music & Lyrics
+            Music
           </Link>
           <Link
             href="/social"

@@ -1,19 +1,109 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, RefObject } from 'react';
 
-// Export types for TypeScript compatibility
-// These are defined in detail in the .d.ts file
-export { ClipAnimationOptions, ClipAnimationReturn, AnimationOptions, AnimationCallbacks, CustomAnimationOptions };
+// Animation options for different transitions
+export interface AnimationOptions {
+  initialToGrid?: {
+    clipPath?: string;
+    clipScale?: number;
+    slideDuration?: number;
+    slideEase?: string;
+    slideStaggerAmount?: number;
+    slideStaggerFrom?: string;
+    titleDuration?: number;
+    titleStaggerAmount?: number;
+    titleStaggerFrom?: string;
+  };
+  gridToInitial?: {
+    clipPath?: string;
+    clipScale?: number;
+    slideDuration?: number;
+    slideEase?: string;
+    slideStaggerAmount?: number;
+    slideStaggerFrom?: string;
+    titleDuration?: number;
+    titleStaggerAmount?: number;
+    titleStaggerFrom?: string;
+  };
+  gridToContent?: {
+    slideOpacity?: number;
+    slideScale?: number;
+    slideBlur?: string;
+    selectedOpacity?: number;
+    selectedScale?: number;
+    selectedY?: number;
+    contentSelector?: string;
+  };
+  contentToGrid?: {
+    contentSelector?: string;
+  };
+}
+
+// Callback functions for different animation stages
+export interface AnimationCallbacks {
+  onSlideClick?: (index: number) => void;
+  onStageChange?: (stage: string, index?: number) => void;
+}
+
+// Options for the useClipAnimation hook
+export interface ClipAnimationOptions {
+  initialStage?: string;
+  stages?: string[];
+  callbacks?: AnimationCallbacks;
+  defaultAnimationOptions?: AnimationOptions;
+}
+
+// Custom options for animation methods
+export interface CustomAnimationOptions {
+  clipPath?: string;
+  clipScale?: number;
+  slideDuration?: number;
+  slideEase?: string;
+  slideStaggerAmount?: number;
+  slideStaggerFrom?: string;
+  titleDuration?: number;
+  titleStaggerAmount?: number;
+  titleStaggerFrom?: string;
+  slideOpacity?: number;
+  slideScale?: number;
+  slideBlur?: string;
+  selectedOpacity?: number;
+  selectedScale?: number;
+  selectedY?: number;
+  contentSelector?: string;
+  onCompleteCallback?: (index?: number) => void;
+}
+
+// Return type of the useClipAnimation hook
+export interface ClipAnimationReturn {
+  // Refs for animation elements
+  clipRef: RefObject<HTMLDivElement | null>;
+  clipImageRef: RefObject<HTMLDivElement | null>;
+  slidesRef: RefObject<HTMLDivElement | null>;
+  titleRef: RefObject<HTMLHeadingElement | null>;
+  
+  // Animation control functions
+  toggleEffect: (customOptions?: CustomAnimationOptions) => void;
+  showSlider: (customOptions?: CustomAnimationOptions) => void;
+  showPreview: (customOptions?: CustomAnimationOptions) => void;
+  handleSlideClick: (index: number, customOptions?: CustomAnimationOptions) => void;
+  
+  // State values
+  selectedSlide: number | null;
+  stage: string;
+  isAnimating: boolean;
+  isEffectActive: boolean;
+  
+  // Helper methods
+  getCurrentStage: () => string;
+  isStageActive: (stageName: string) => boolean;
+}
 
 /**
  * A flexible animation hook for creating clip and transition effects
- * @param {Object} options - Configuration options
- * @param {string} options.initialStage - The initial animation stage
- * @param {Array<string>} options.stages - Array of possible animation stages
- * @param {Object} options.callbacks - Custom callbacks for different stages
- * @param {Object} options.defaultAnimationOptions - Default animation options that can be overridden
- * @returns {Object} Animation controls and state
+ * @param options - Configuration options
+ * @returns Animation controls and state
  */
-export function useClipAnimation(options = {}) {
+export function useClipAnimation(options: ClipAnimationOptions = {}): ClipAnimationReturn {
   // Default options
   const {
     initialStage = 'initial',
@@ -71,26 +161,26 @@ export function useClipAnimation(options = {}) {
   };
   
   // Refs for animation elements
-  const clipRef = useRef(null);
-  const clipImageRef = useRef(null);
-  const slidesRef = useRef(null);
-  const titleRef = useRef(null);
+  const clipRef = useRef<HTMLDivElement>(null);
+  const clipImageRef = useRef<HTMLDivElement>(null);
+  const slidesRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   
   // State management
-  const [stage, setStage] = useState(initialStage);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [selectedSlide, setSelectedSlide] = useState(null);
+  const [stage, setStage] = useState<string>(initialStage);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [selectedSlide, setSelectedSlide] = useState<number | null>(null);
   
   useEffect(() => {
     // Initialize Splitting.js if available
-    if (typeof window !== 'undefined' && window.Splitting) {
-      window.Splitting();
+    if (typeof window !== 'undefined' && (window as any).Splitting) {
+      (window as any).Splitting();
     }
     
     // Import GSAP dynamically to avoid SSR issues
     const initGSAP = async () => {
       const gsap = (await import('gsap')).default;
-      window.gsap = gsap;
+      (window as any).gsap = gsap;
     };
     
     initGSAP();
@@ -98,10 +188,10 @@ export function useClipAnimation(options = {}) {
   
   /**
    * Transition from initial stage to grid stage
-   * @param {Object} customOptions - Custom animation options
+   * @param customOptions - Custom animation options
    */
-  const showSlider = useCallback((customOptions = {}) => {
-    if (isAnimating || !window.gsap || stage !== initialStage) return;
+  const showSlider = useCallback((customOptions: CustomAnimationOptions = {}) => {
+    if (isAnimating || !(window as any).gsap || stage !== initialStage) return;
     setIsAnimating(true);
     
     // Merge default options with custom options
@@ -123,7 +213,7 @@ export function useClipAnimation(options = {}) {
     
     if (!titleChars || !slides) return;
     
-    window.gsap.timeline({
+    (window as any).gsap.timeline({
       defaults: {
         duration: 1.2,
         ease: 'power4.inOut',
@@ -133,13 +223,15 @@ export function useClipAnimation(options = {}) {
         setStage(stages[1]); // Move to next stage (grid)
         
         // Make slides clickable
-        slides.forEach((slide, index) => {
-          slide.style.cursor = 'pointer';
+        slides.forEach((slide: Element, index: number) => {
+          (slide as HTMLElement).style.cursor = 'pointer';
           // Use custom click handler if provided
           if (typeof callbacks.onSlideClick === 'function') {
-            slide.onclick = () => callbacks.onSlideClick(index);
+            (slide as HTMLElement).onclick = () => {
+              if (callbacks.onSlideClick) callbacks.onSlideClick(index);
+            };
           } else {
-            slide.onclick = () => handleSlideClick(index);
+            (slide as HTMLElement).onclick = () => handleSlideClick(index);
           }
         });
         
@@ -189,10 +281,10 @@ export function useClipAnimation(options = {}) {
   
   /**
    * Transition from grid or content stage back to initial stage
-   * @param {Object} customOptions - Custom animation options
+   * @param customOptions - Custom animation options
    */
-  const showPreview = useCallback((customOptions = {}) => {
-    if (isAnimating || !window.gsap || stage === initialStage) return;
+  const showPreview = useCallback((customOptions: CustomAnimationOptions = {}) => {
+    if (isAnimating || !(window as any).gsap || stage === initialStage) return;
     setIsAnimating(true);
     
     // Merge default options with custom options
@@ -215,12 +307,12 @@ export function useClipAnimation(options = {}) {
     if (!titleChars || !slides) return;
     
     // Remove click handlers
-    slides.forEach(slide => {
-      slide.style.cursor = 'default';
-      slide.onclick = null;
+    slides.forEach((slide: Element) => {
+      (slide as HTMLElement).style.cursor = 'default';
+      (slide as HTMLElement).onclick = null;
     });
 
-    window.gsap.timeline({
+    (window as any).gsap.timeline({
       defaults: {
         duration: 1.2,
         ease: 'power4.inOut',
@@ -273,10 +365,10 @@ export function useClipAnimation(options = {}) {
   
   /**
    * Handle slide click to transition from grid to content stage
-   * @param {number} index - Index of the clicked slide
-   * @param {Object} customOptions - Custom animation options
+   * @param index - Index of the clicked slide
+   * @param customOptions - Custom animation options
    */
-  const handleSlideClick = useCallback((index, customOptions = {}) => {
+  const handleSlideClick = useCallback((index: number, customOptions: CustomAnimationOptions = {}) => {
     if (isAnimating || stage !== stages[1]) return; // Only work in grid stage
     setIsAnimating(true);
     
@@ -301,19 +393,19 @@ export function useClipAnimation(options = {}) {
     const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
     
     // Ensure content container is ready to be visible
-    const contentContainer = document.querySelector(contentSelector);
+    const contentContainer = document.querySelector(contentSelector as string);
     if (contentContainer) {
       // Make sure it's visible but transparent initially
-      window.gsap.set(contentContainer, { visibility: 'visible', opacity: 0 });
+      (window as any).gsap.set(contentContainer, { visibility: 'visible', opacity: 0 });
     }
     
     // First, blur and scale all slides with enhanced effect
-    const tl = window.gsap.timeline({
+    const tl = (window as any).gsap.timeline({
       defaults: { duration: 0.7, ease: 'power3.out' },
       onComplete: () => {
         // Make content visible immediately
         if (contentContainer) {
-          window.gsap.to(contentContainer, {
+          (window as any).gsap.to(contentContainer, {
             opacity: 1,
             duration: 0.3,
             ease: 'power2.out',
@@ -384,9 +476,9 @@ export function useClipAnimation(options = {}) {
 
   /**
    * Toggle between animation stages
-   * @param {Object} customOptions - Custom animation options
+   * @param customOptions - Custom animation options
    */
-  const toggleEffect = useCallback((customOptions = {}) => {
+  const toggleEffect = useCallback((customOptions: CustomAnimationOptions = {}) => {
     if (isAnimating) return;
     setIsAnimating(true);
     
@@ -407,9 +499,9 @@ export function useClipAnimation(options = {}) {
       const coverTitle = titleRef.current;
       const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
       const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
-      const contentContainer = document.querySelector(contentSelector);
+      const contentContainer = document.querySelector(contentSelector as string);
       
-      const tl = window.gsap.timeline({
+      const tl = (window as any).gsap.timeline({
         onComplete: () => {
           setIsAnimating(false);
           setStage(stages[1]); // Back to grid stage
@@ -476,6 +568,6 @@ export function useClipAnimation(options = {}) {
     // Helper method to get current stage
     getCurrentStage: () => stage,
     // Helper method to check if a specific stage is active
-    isStageActive: (stageName) => stage === stageName
+    isStageActive: (stageName: string) => stage === stageName
   };
 }

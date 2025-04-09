@@ -1,0 +1,111 @@
+/* Music page styles */
+.discography-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 5vh 5vw;
+  color: #fff;
+}
+
+.discography-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5vh;
+}
+
+.discography-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.discography-back {
+  background: none;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.discography-back:hover {
+  background-color: #fff;
+  color: #000;
+}
+
+.discography-category {
+  margin-bottom: 4vh;
+}
+
+.discography-category h3 {
+  font-size: 1.5rem;
+  margin-bottom: 2vh;
+  font-weight: 500;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 1vh;
+}
+
+.discography-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+/* Ripple effect for buttons */
+.cover__button {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.7);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  z-index: 1;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .discography-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .discography-header h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .discography-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
+  }
+  
+  .discography-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .discography-header h2 {
+    font-size: 1.8rem;
+  }
+}

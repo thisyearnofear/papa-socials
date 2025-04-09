@@ -1,10 +1,11 @@
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { useClipAnimation } from "../../hooks/useClipAnimation";
+import { useClipAnimation, ClipAnimationReturn } from "../../hooks/useClipAnimation";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
+import "../../styles/music.css";
 
 export default function MusicPage() {
   const { 
@@ -15,7 +16,30 @@ export default function MusicPage() {
     toggleEffect, 
     stage,
     handleSlideClick 
-  } = useClipAnimation();
+  }: ClipAnimationReturn = useClipAnimation({
+    initialStage: 'initial',
+    stages: ['initial', 'grid', 'discography'],
+    callbacks: {
+      onStageChange: (newStage: string, index?: number) => {
+        console.log(`Music page transitioned to ${newStage} stage`);
+        if (newStage !== 'discography') {
+          setActiveRelease(null);
+        }
+      }
+    },
+    defaultAnimationOptions: {
+      gridToContent: {
+        contentSelector: '.discography-container',
+        slideOpacity: 0.1,
+        slideScale: 0.85,
+        selectedOpacity: 0.9,
+        selectedScale: 1.15
+      },
+      contentToGrid: {
+        contentSelector: '.discography-container'
+      }
+    }
+  });
   
   const [activeRelease, setActiveRelease] = useState<string | null>(null);
   
@@ -165,7 +189,7 @@ export default function MusicPage() {
             >
               <div className="discography-header">
                 <h2>DISCOGRAPHY</h2>
-                <button className="discography-back" onClick={toggleEffect}>
+                <button className="discography-back" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
                   ← Back to music
                 </button>
               </div>

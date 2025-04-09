@@ -1,0 +1,527 @@
+/* Social Feeds Styling */
+.social-feeds-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 5vh 5vw;
+  z-index: 100;
+  overflow-y: auto;
+  color: #fff;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Loading animation for social feeds */
+.social-feeds-container.loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Visual cues for clickable slides */
+.pulse-effect {
+  animation: pulse 2s infinite;
+  position: relative;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+/* Tooltip for slides */
+.slide-tooltip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease, bottom 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.slide:hover .slide-tooltip {
+  opacity: 1;
+  bottom: -25px;
+}
+
+/* Guidance message styling */
+.guidance-message {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.guidance-message.fade-out {
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* Slide styling for the unique zooming animation */
+.slides {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Initial stage - single image with title */
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease, transform 0.6s ease;
+}
+
+.slide--current {
+  opacity: 1;
+  visibility: visible;
+  z-index: 10;
+}
+
+/* Grid stage - multiple images */
+.grid .slide {
+  position: absolute;
+  width: 33.333%;
+  height: 33.333%;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  opacity: 1;
+  visibility: visible;
+  transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.4s ease;
+}
+
+.grid .slide:nth-child(1) { top: 33.333%; left: 0; }
+.grid .slide:nth-child(2) { top: 0; left: 33.333%; }
+.grid .slide:nth-child(3) { top: 33.333%; left: 33.333%; }
+.grid .slide:nth-child(4) { top: 33.333%; left: 66.666%; }
+.grid .slide:nth-child(5) { top: 66.666%; left: 33.333%; }
+
+.slide__img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  pointer-events: none;
+  opacity: 1 !important;
+  transition: transform 0.5s ease;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.slide:hover .slide__img {
+  transform: scale(1.05);
+}
+
+/* Click indicator styling */
+.click-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 20;
+}
+
+.slide:hover .click-indicator {
+  transform: translateY(0);
+}
+
+/* Pulse animation for clickable elements */
+.pulse-title {
+  animation: titlePulse 2s infinite;
+  position: relative;
+  z-index: 100;
+}
+
+@keyframes titlePulse {
+  0% {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    transform: scale(1);
+  }
+}
+
+/* Title wrapper styling - clean and minimal */
+.title-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.title-wrapper.clickable {
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+.title-wrapper.clickable:hover {
+  transform: scale(1.05);
+}
+
+/* Make sure the title is above everything else in grid stage */
+.grid .title-wrapper.clickable {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000 !important;
+}
+
+.grid .title-wrapper.clickable:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* View Social Feeds button styling */
+.view-social-button {
+  position: fixed;
+  top: 65%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 15px 30px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+  z-index: 99999 !important;
+  opacity: 0;
+  animation: fadeIn 0.5s ease 0.5s forwards;
+  outline: none;
+  pointer-events: auto !important;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.view-social-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: white;
+  transform: translate(-50%, 0) scale(1.05);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Make sure the button is always on top */
+.grid .view-social-button {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Style the title to be more button-like in grid stage */
+.grid .cover__title {
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 100;
+  font-size: 5rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  pointer-events: none; /* Make sure clicks go through to the wrapper */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  padding-bottom: 10px;
+}
+
+/* Enhanced hover effect */
+.title-wrapper.clickable:hover .cover__title {
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+  border-bottom-color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 5px;
+}
+
+/* Header styling */
+.social-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px 30px;
+  margin-bottom: 20px;
+}
+
+.social-back {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 400;
+  position: relative;
+  z-index: 100;
+  outline: none;
+}
+
+.social-back:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: scale(1.05);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.social-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+/* Content sections */
+.social-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.social-section {
+  margin-bottom: 1rem;
+}
+
+.social-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.social-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #f5d491, transparent);
+}
+
+/* Video grid */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.video-item {
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.video-item h4 {
+  padding: 1rem;
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Instagram container */
+.instagram-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  height: 500px;
+}
+
+.lightwidget-widget {
+  height: 100% !important;
+}
+
+/* Social links grid */
+.social-links-grid {
+  margin-top: 1rem;
+}
+
+.social-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.social-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.3s ease, color 0.3s ease;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  width: 120px;
+}
+
+.social-icon:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+  color: #f5d491;
+}
+
+.social-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .social-feeds-container {
+    padding: 1.5rem;
+  }
+  
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .social-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .instagram-container {
+    height: 400px;
+  }
+}
+
+/* Animation for ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Animation for feed transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
