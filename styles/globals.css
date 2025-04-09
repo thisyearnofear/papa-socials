@@ -266,12 +266,23 @@ a:hover {
   grid-gap: 1vw;
   padding: 1vw;
   z-index: 5;
+  opacity: 0; /* Start hidden, will be animated by GSAP */
+  pointer-events: none; /* Initially not interactive */
+}
+
+/* When in grid stage, make slides visible and interactive */
+.slides.grid-active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .slide {
   position: relative;
   overflow: hidden;
   border-radius: 10px;
+  height: 100%; /* Ensure full height */
+  transform-origin: center center; /* For scale animations */
+  transition: transform 0.3s ease, filter 0.3s ease; /* Smooth transitions */
 }
 
 .slide__img {

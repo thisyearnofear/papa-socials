@@ -2,8 +2,12 @@ import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useClipAnimation, ClipAnimationReturn } from "../../hooks/useClipAnimation";
 import React from "react";
+import { bandMembers } from "../../data/band-members";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function BandPage() {
+  const [selectedMember, setSelectedMember] = React.useState<number | null>(null);
+
   // Use the refactored hook with custom options for band/discography page
   const { 
     clipRef, 
@@ -54,18 +58,17 @@ export default function BandPage() {
       </Head>
 
       <Layout>
-        {/* Original Band Content */}
+        {/* Band Members Grid */}
         <div className="slides" ref={slidesRef}>
-          {[2, 3, 1, 4, 5].map((num, index) => (
+          {bandMembers.map((member, index) => (
             <div 
-              key={num}
-              className={`slide ${num === 1 ? 'slide--current' : ''}`}
+              key={member.id}
+              className={`slide ${index === 0 ? 'slide--current' : ''}`}
               onClick={() => {
                 if (stage === 'grid') {
                   handleSlideClick(index, {
-                    // Custom options for the slide click animation
                     onCompleteCallback: () => {
-                      console.log(`Selected album ${index}`);
+                      setSelectedMember(member.id);
                     }
                   });
                 }
@@ -76,8 +79,15 @@ export default function BandPage() {
             >
               <div
                 className="slide__img"
-                style={{ backgroundImage: `url(/img/demo4/${num}.jpg)` }}
-              ></div>
+                style={{ backgroundImage: `url(${member.image})` }}
+              >
+                {stage === 'grid' && (
+                  <div className="slide__info">
+                    <h3>{member.name}</h3>
+                    <p>{member.instrument}</p>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -86,7 +96,7 @@ export default function BandPage() {
           <div
             className="clip__img"
             ref={clipImageRef}
-            style={{ backgroundImage: "url(/img/demo4/1.jpg)" }}
+            style={{ backgroundImage: `url(${bandMembers[0].image})` }}
           ></div>
         </div>
 
@@ -105,81 +115,44 @@ export default function BandPage() {
           </button>
         </div>
 
-        {/* Discography Container - appears after slide selection */}
-        <div className="discography-container" style={{ display: stage === 'discography' ? 'block' : 'none' }}>
-          <div className="discography-header">
-            <h2>DISCOGRAPHY</h2>
-            <button className="discography-back" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
-              ← Back to band
-            </button>
-          </div>
-          
-          <div className="discography-content">
-            <div className="album-section">
-              <h3>ALBUMS</h3>
-              <div className="album-grid">
-                {/* Down In The Dirt (2024) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Down In The Dirt clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/down-in-the-dirt.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Down In The Dirt</h4>
-                    <p>2024</p>
-                  </div>
-                </div>
-                
-                {/* Rafiki (2024) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Rafiki clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/rafiki.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Rafiki</h4>
-                    <p>2024</p>
-                  </div>
-                </div>
-                
-                {/* Legacy (2022) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Legacy clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/legacy.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Legacy</h4>
-                    <p>2022</p>
-                  </div>
-                </div>
-                
-                {/* Distance (2019) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Distance clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/distance.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Distance</h4>
-                    <p>2019</p>
-                  </div>
-                </div>
+        {/* Band Member Details - appears after slide selection */}
+        <AnimatePresence>
+          {stage === 'discography' && selectedMember && (
+            <motion.div 
+              className="band-member-container"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="band-member-header">
+                <h2>BAND MEMBER</h2>
+                <button className="band-member-back" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
+                  ← Back to band
+                </button>
               </div>
-            </div>
-            
-            <div className="album-section">
-              <h3>EPs</h3>
-              <div className="album-grid">
-                {/* Zeno (2021) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Zeno clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/zeno.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Zeno</h4>
-                    <p>2021</p>
+              
+              <div className="band-member-content">
+                {bandMembers.find(member => member.id === selectedMember) && (
+                  <div className="band-member-details">
+                    <div 
+                      className="band-member-image"
+                      style={{
+                        backgroundImage: `url(${bandMembers.find(member => member.id === selectedMember)?.image})`
+                      }}
+                    />
+                    <div className="band-member-info">
+                      <h3>{bandMembers.find(member => member.id === selectedMember)?.name}</h3>
+                      <p>{bandMembers.find(member => member.id === selectedMember)?.instrument}</p>
+                      {bandMembers.find(member => member.id === selectedMember)?.isGroupPhoto && (
+                        <p className="group-photo-label">Group Photo</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Paradox (TBD) */}
-                <div className="album-item" onClick={(e) => { e.preventDefault(); console.log('Paradox clicked'); }}>
-                  <div className="album-cover" style={{ backgroundImage: "url(/img/albums/paradox.jpg)" }}></div>
-                  <div className="album-info">
-                    <h4>Paradox</h4>
-                    <p>Coming Soon</p>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Layout>
     </>
   );

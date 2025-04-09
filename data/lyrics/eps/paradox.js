@@ -2,7 +2,7 @@ export const epInfo = {
   id: "paradox",
   title: "Paradox",
   type: "ep",
-  releaseDate: "TBD", // Update with actual release date
+  releaseDate: "2023-07-01", // Update with actual release date
   coverImage: "/img/demo1/1.jpg", // Update with actual path
   description: "An EP exploring contradictions and harmonies in musical form.",
 };
@@ -324,5 +324,5 @@ export const tracks = [
       "But your moves are raising the alarms", // Typo 'alarm' likely intended
       "",
     ],
-  }
+  },
 ];

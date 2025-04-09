@@ -55,7 +55,9 @@ export function useClipAnimation(options = {}) {
       selectedOpacity: 0.8,
       selectedScale: 1.15,
       selectedY: -40,
-      contentSelector: '.discography-container'
+      contentSelector: '.discography-container',
+      slideDuration: 0.7,
+      slideEase: 'power3.inOut'
     },
     // Content to grid transition options
     contentToGrid: {
@@ -191,43 +193,32 @@ export function useClipAnimation(options = {}) {
    * @param {Object} customOptions - Custom animation options
    */
   const showPreview = useCallback((customOptions = {}) => {
-    if (isAnimating || !window.gsap || stage === initialStage) return;
+    if (isAnimating || !window.gsap || stage !== stages[1]) return;
     setIsAnimating(true);
     
     // Merge default options with custom options
     const {
-      clipPath = animationOptions.gridToInitial.clipPath,
-      clipScale = animationOptions.gridToInitial.clipScale,
-      slideDuration = animationOptions.gridToInitial.slideDuration,
-      slideEase = animationOptions.gridToInitial.slideEase,
-      slideStaggerAmount = animationOptions.gridToInitial.slideStaggerAmount,
-      slideStaggerFrom = animationOptions.gridToInitial.slideStaggerFrom,
-      titleDuration = animationOptions.gridToInitial.titleDuration,
-      titleStaggerAmount = animationOptions.gridToInitial.titleStaggerAmount,
-      titleStaggerFrom = animationOptions.gridToInitial.titleStaggerFrom,
+      contentSelector = animationOptions.contentToGrid.contentSelector,
+      slideOpacity = animationOptions.gridToContent.slideOpacity,
+      slideScale = animationOptions.gridToContent.slideScale,
+      slideBlur = animationOptions.gridToContent.slideBlur,
+      selectedOpacity = animationOptions.gridToContent.selectedOpacity,
+      selectedScale = animationOptions.gridToContent.selectedScale,
+      selectedY = animationOptions.gridToContent.selectedY,
+      slideDuration = animationOptions.gridToContent.slideDuration,
       onCompleteCallback = null
     } = customOptions;
     
-    const titleChars = titleRef.current?.querySelectorAll('.char');
     const slides = slidesRef.current?.querySelectorAll('.slide');
+    const coverTitle = titleRef.current;
+    const coverDescription = coverTitle?.parentNode?.querySelector('.cover__description');
+    const coverButton = coverTitle?.parentNode?.querySelector('.cover__button');
+    const contentContainer = document.querySelector(contentSelector);
     
-    if (!titleChars || !slides) return;
-    
-    // Remove click handlers
-    slides.forEach(slide => {
-      slide.style.cursor = 'default';
-      slide.onclick = null;
-    });
-
-    window.gsap.timeline({
-      defaults: {
-        duration: 1.2,
-        ease: 'power4.inOut',
-      },
+    const tl = window.gsap.timeline({
       onComplete: () => {
         setIsAnimating(false);
-        setStage(initialStage);
-        setSelectedSlide(null);
+        setStage(stages[2]); // Move to content stage
         
         // Call custom complete callback if provided
         if (typeof onCompleteCallback === 'function') {
@@ -236,39 +227,50 @@ export function useClipAnimation(options = {}) {
         
         // Call stage change callback if provided
         if (typeof callbacks.onStageChange === 'function') {
-          callbacks.onStageChange(initialStage);
+          callbacks.onStageChange(stages[2], index);
         }
       }
-    })
-    .addLabel('start', 0)
-    .set(titleChars, {transformOrigin: '50% 0%'})
-    .to(clipRef.current, {
-      clipPath: clipPath,
-    }, 'start')
-    .to(clipImageRef.current, {
-      scale: clipScale
-    }, 'start')
-    .to(slides, {
-      duration: slideDuration,
-      ease: slideEase,
+    });
+    
+    // First hide the cover title, description, and button
+    tl.to([coverTitle, coverDescription, coverButton], {
       opacity: 0,
-      z: 600,
-      stagger: {
-        amount: slideStaggerAmount,
-        from: slideStaggerFrom
-      }
-    }, 'start')
-    .fromTo(titleChars, {
-      scaleY: 0
-    }, {
-      duration: titleDuration,
-      scaleY: 1,
-      stagger: {
-        amount: titleStaggerAmount,
-        from: titleStaggerFrom
-      }
-    }, 'start');
-  }, [isAnimating, stage, initialStage, callbacks, clipRef, clipImageRef, slidesRef, titleRef, animationOptions]);
+      y: -20,
+      duration: 0.4,
+      ease: 'power2.out',
+      stagger: 0.05
+    })
+    // Fade out and blur non-selected slides
+    .to(slides, {
+      opacity: slideOpacity,
+      scale: slideScale,
+      filter: `blur(${slideBlur})`,
+      duration: slideDuration,
+      ease: 'power3.inOut'
+    })
+    // Highlight the selected slide
+    .to(slides[index], {
+      opacity: selectedOpacity,
+      scale: selectedScale,
+      filter: 'blur(0px)',
+      duration: slideDuration,
+      ease: 'power3.inOut'
+    }, '-=0.5')
+    // Move selected slide up
+    .to(slides[index], {
+      y: selectedY,
+      duration: slideDuration,
+      ease: 'power3.inOut'
+    }, '-=0.5')
+    // Show the content container
+    .to(contentContainer, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: slideDuration,
+      ease: 'power3.inOut'
+    }, '-=0.5');
+  }, [isAnimating, stage, stages, callbacks, slidesRef, titleRef, animationOptions]);
   
   /**
    * Handle slide click to transition from grid to content stage

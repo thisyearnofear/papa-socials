@@ -10,6 +10,9 @@
   overflow-y: auto;
   padding: 5vh 5vw;
   color: #fff;
+  visibility: hidden; /* Start hidden, will be shown by GSAP */
+  opacity: 0;
+  transition: visibility 0s, opacity 0.3s ease;
 }
 
 .discography-header {
@@ -57,6 +60,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 2rem;
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Ripple effect for buttons */
@@ -81,13 +86,392 @@
   }
 }
 
+/* Discography active state */
+body.discography-active .slides {
+  filter: blur(20px);
+  opacity: 0.2;
+  transform: scale(0.9);
+  transition: all 0.5s ease;
+}
+
+body.discography-active .discography-container {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  z-index: 1000 !important;
+}
+
+/* Debug class for discography container */
+.debug-visible {
+  border: 3px solid red;
+  position: relative;
+}
+
+.debug-visible::before {
+  content: 'DISCOGRAPHY CONTAINER';
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 5px;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+/* Discography header styles */
+.discography-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.discography-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  color: #f5d491;
+}
+
+.discography-back {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.discography-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.discography-category {
+  margin-bottom: 40px;
+}
+
+.discography-category h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #f5d491;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+/* Ensure the slides are properly positioned and visible */
+.slides {
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 10px;
+  padding: 10px;
+  z-index: 5;
+}
+
+.slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 15px;
+  cursor: default;
+  pointer-events: auto;
+  transform-origin: center;
+  will-change: transform;
+  transition: transform 0.3s;
+}
+
+.slide:hover {
+  transform: scale(1.02);
+}
+
+.slide__img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+  transition: transform 0.3s;
+}
+
+/* Ensure the discography container is always properly positioned */
+.discography-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  z-index: 1000 !important;
+  overflow-y: auto !important;
+  padding: 40px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Discography item styles */
+.discography-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.discography-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.discography-item__cover {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.discography-item__info {
+  padding: 1rem;
+}
+
+.discography-item__info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  color: #f5d491;
+}
+
+.discography-item__type {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.discography-item__description {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+/* Active discography item */
+.discography-item--active {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  transform: none;
+}
+
+.discography-item--active .discography-item__cover {
+  height: 300px;
+}
+
+.discography-item--active .discography-item__info {
+  padding: 1.5rem;
+}
+
+.discography-item--active .discography-item__info h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Tracks list */
+.discography-item__tracks {
+  margin-top: 1.5rem;
+}
+
+.discography-item__tracks h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #f5d491;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.discography-item__tracks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.discography-item__tracks li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.discography-item__tracks li:hover {
+  background: rgba(255, 255, 255, 0.05);
+  padding-left: 0.5rem;
+}
+
+/* Lyrics modal */
+.lyrics-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.lyrics-modal-content {
+  background: rgba(30, 30, 30, 0.95);
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  border-radius: 8px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lyrics-modal-content h3 {
+  margin-top: 0;
+  color: #f5d491;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-right: 40px;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lyrics-content-scrollable {
+  overflow-y: auto;
+  max-height: calc(80vh - 100px);
+  padding-right: 1rem;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .discography-item--active {
+    grid-template-columns: 1fr;
+  }
+
+  .discography-item--active .discography-item__cover {
+    height: 200px;
+  }
+
+  .lyrics-modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+}
+
+/* Debug class for discography container */
+.debug-visible {
+  border: 3px solid red;
+  position: relative;
+}
+
+.debug-visible::before {
+  content: 'DISCOGRAPHY CONTAINER';
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 5px;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+/* Grid instruction overlay */
+.grid-instruction-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.grid-instruction-overlay.visible {
+  opacity: 1;
+}
+
+.instruction-text {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 2rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: float 2s infinite ease-in-out;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .discography-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1.5rem;
   }
-  
+
   .discography-header h2 {
     font-size: 2rem;
   }
@@ -98,13 +482,13 @@
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 1rem;
   }
-  
+
   .discography-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .discography-header h2 {
     font-size: 1.8rem;
   }
