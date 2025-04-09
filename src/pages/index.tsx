@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
-import "../../styles/music.css";
 
 export default function MusicPage() {
   const { 
@@ -20,7 +19,7 @@ export default function MusicPage() {
     initialStage: 'initial',
     stages: ['initial', 'grid', 'discography'],
     callbacks: {
-      onStageChange: (newStage: string, index?: number) => {
+      onStageChange: (newStage: string) => {
         console.log(`Music page transitioned to ${newStage} stage`);
         if (newStage !== 'discography') {
           setActiveRelease(null);

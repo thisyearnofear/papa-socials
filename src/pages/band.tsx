@@ -1,8 +1,7 @@
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import { useClipAnimation, ClipAnimationReturn, AnimationCallbacks } from "../../hooks/useClipAnimation";
-import React, { useEffect } from "react";
-import "../../styles/band.css";
+import { useClipAnimation, ClipAnimationReturn } from "../../hooks/useClipAnimation";
+import React from "react";
 
 export default function BandPage() {
   // Use the refactored hook with custom options for band/discography page

@@ -152,16 +152,25 @@
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  opacity: 1;
-  visibility: visible;
+  opacity: 1 !important;
+  visibility: visible !important;
   transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.4s ease;
+  z-index: 10 !important;
 }
 
-.grid .slide:nth-child(1) { top: 33.333%; left: 0; }
-.grid .slide:nth-child(2) { top: 0; left: 33.333%; }
-.grid .slide:nth-child(3) { top: 33.333%; left: 33.333%; }
-.grid .slide:nth-child(4) { top: 33.333%; left: 66.666%; }
-.grid .slide:nth-child(5) { top: 66.666%; left: 33.333%; }
+/* Ensure grid positions are correct and use !important to override any conflicting styles */
+.grid .slide:nth-child(1) { top: 33.333% !important; left: 0 !important; }
+.grid .slide:nth-child(2) { top: 0 !important; left: 33.333% !important; }
+.grid .slide:nth-child(3) { top: 33.333% !important; left: 33.333% !important; }
+.grid .slide:nth-child(4) { top: 33.333% !important; left: 66.666% !important; }
+.grid .slide:nth-child(5) { top: 66.666% !important; left: 33.333% !important; }
+
+/* Add hover effects to make grid items more interactive */
+.grid .slide:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+  z-index: 20 !important;
+}
 
 .slide__img {
   position: absolute;

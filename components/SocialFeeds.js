@@ -49,7 +49,7 @@ const platforms = [
             rel="noopener noreferrer"
           >
             <h3 style={{ margin: "14px 0", fontFamily: "Arial, sans-serif", fontSize: "14px", lineHeight: "18px" }}>
-              View PAPA's Instagram Profile
+              View PAPA&apos;s Instagram Profile
             </h3>
           </a>
         </div>
@@ -195,6 +195,7 @@ export default function SocialFeeds({ isVisible }) {
             key={platform.id} 
             className={`feed-content ${activePlatform === platform.id ? 'active' : ''}`}
           >
+            <div className="feed-title">PAPA&apos;s {platform.name}</div>
             {platform.embedCode}
           </div>
         ))}

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-// Export types for TypeScript compatibility
-// These are defined in detail in the .d.ts file
-export { ClipAnimationOptions, ClipAnimationReturn, AnimationOptions, AnimationCallbacks, CustomAnimationOptions };
+// Types are exported from the .d.ts file
+// No need to re-export them here as they're only used for TypeScript
 
 /**
  * A flexible animation hook for creating clip and transition effects

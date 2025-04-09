@@ -4,7 +4,6 @@ import { useClipAnimation, ClipAnimationReturn, CustomAnimationOptions } from ".
 import SocialLinks from "../../components/SocialLinks";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import "../../styles/social.css";
 
 export default function SocialPage() {
   // Use the refactored hook with custom options for social page animations
@@ -14,15 +13,15 @@ export default function SocialPage() {
     slidesRef, 
     titleRef, 
     toggleEffect, 
-    stage,
-    handleSlideClick
+    handleSlideClick, 
+    stage
   }: ClipAnimationReturn = useClipAnimation({
     // Default stages for social page - match the music page flow
     initialStage: 'initial',
     stages: ['initial', 'grid', 'social'],
     // Add callbacks for stage changes to handle UI updates
     callbacks: {
-      onStageChange: (newStage: string, index?: number) => {
+      onStageChange: (newStage: string) => {
         console.log(`Social page transitioned to ${newStage} stage`);
         // Only show social feeds when in the 'social' stage
         setShowSocialFeeds(newStage === 'social');
@@ -45,7 +44,8 @@ export default function SocialPage() {
   });
   
   // Add a separate state to control social feeds visibility
-  const [showSocialFeeds, setShowSocialFeeds] = useState(false);
+  // State is used in the onStageChange callback
+  const [, setShowSocialFeeds] = useState(false);
   
   // Load social media scripts
   useEffect(() => {
@@ -77,73 +77,63 @@ export default function SocialPage() {
         coverButton.setAttribute('style', 'display: none; pointer-events: none;');
       }
       
+      // Store ref values in variables to avoid issues in cleanup function
+      const titleElementRef = titleRef.current;
+      const slidesContainerRef = slidesRef.current;
+      
       // Add pulsing effect to the title to indicate it's clickable
-      const titleElement = titleRef.current;
-      if (titleElement) {
-        titleElement.classList.add('pulse-title');
+      if (titleElementRef) {
+        titleElementRef.classList.add('pulse-title');
       }
       
       // Make sure the title wrapper is clickable
       const titleWrapper = document.querySelector('.title-wrapper');
       if (titleWrapper) {
-        console.log('Title wrapper found, making it clickable');
         titleWrapper.classList.add('clickable');
         // Use !important to override any other styles
         titleWrapper.setAttribute('style', 'z-index: 9999 !important; position: relative !important; pointer-events: auto !important;');
         
         // Add a direct click event listener
-        titleWrapper.addEventListener('click', () => {
+        const clickHandler = () => {
           console.log('Title wrapper clicked directly');
           if (stage === 'grid') {
             handleSlideClick(0);
           }
-        });
-      } else {
-        console.log('Title wrapper not found');
+        };
+        
+        titleWrapper.addEventListener('click', clickHandler);
+        
+        // Store the handler for cleanup
+        return () => {
+          titleWrapper.removeEventListener('click', clickHandler);
+          
+          if (titleElementRef) {
+            titleElementRef.classList.remove('pulse-title');
+          }
+          
+          if (titleWrapper) {
+            titleWrapper.classList.remove('clickable');
+            titleWrapper.removeAttribute('style');
+          }
+        };
       }
       
+      // Force the grid class to be applied to the slides container
+      if (slidesContainerRef && !slidesContainerRef.classList.contains('grid')) {
+        console.log('Forcing grid class on slides container');
+        slidesContainerRef.classList.add('grid');
+      }
       
       // Make sure any potential blocking elements are not blocking
       const slides = document.querySelectorAll('.slides__slide');
       slides.forEach(slide => {
-        slide.setAttribute('style', 'pointer-events: none !important;');
+        slide.setAttribute('style', 'pointer-events: none;');
       });
-      
-      // Make sure the clip element doesn't block clicks
-      const clipElement = document.querySelector('.clip');
-      if (clipElement) {
-        clipElement.setAttribute('style', 'pointer-events: none !important;');
-      }
-    } else {
-      // Remove pulse effect from title when not in grid stage
-      const titleElement = titleRef.current;
-      if (titleElement) {
-        titleElement.classList.remove('pulse-title');
-      }
-      
-      // Remove clickable class from title wrapper
-      const titleWrapper = document.querySelector('.title-wrapper');
-      if (titleWrapper) {
-        titleWrapper.classList.remove('clickable');
-        titleWrapper.removeAttribute('style');
-      }
     }
     
-    // Clean up function
-    return () => {
-      const titleElement = titleRef.current;
-      if (titleElement) {
-        titleElement.classList.remove('pulse-title');
-      }
-      
-      // Clean up click event listener
-      const titleWrapper = document.querySelector('.title-wrapper');
-      if (titleWrapper) {
-        titleWrapper.classList.remove('clickable');
-        titleWrapper.removeAttribute('style');
-      }
-    };
-  }, [stage, titleRef, handleSlideClick]);
+    // Default cleanup function if the titleWrapper wasn't found
+    return () => {};
+  }, [stage, titleRef, handleSlideClick, slidesRef]);
 
   return (
     <>

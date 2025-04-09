@@ -1,6 +1,10 @@
 import "@/styles/globals.css";
 import "../../styles/globals.css";
 import "../../styles/discography.css";
+import "../../styles/band.css";
+import "../../styles/events.css";
+import "../../styles/music.css";
+import "../../styles/social.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 
