@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Layout from "../../components/Layout";
-import Image from "next/image";
+import { OptimizedImage } from "../../components/OptimizedImage";
 import {
   useClipAnimation,
   ClipAnimationReturn,
@@ -179,22 +179,15 @@ export default function MusicPage() {
       </Head>
 
       <Layout>
-        <div className="slides" ref={slidesRef}>
+        <div
+          className={`slides ${stage === "grid" ? "grid" : ""}`}
+          ref={slidesRef}
+        >
           {[1, 1, 1, 1, 1].map((num, index) => (
             <motion.div
               key={index}
               className={`slide ${index === 2 ? "slide--current" : ""}`}
-              onClick={() => {
-                if (stage === "grid") {
-                  handleSlideClick(index, {
-                    onCompleteCallback: () => {
-                      console.log(
-                        "Slide clicked, transitioning to discography view"
-                      );
-                    },
-                  });
-                }
-              }}
+              onClick={() => stage === "grid" && handleSlideClick(index)}
               style={{
                 cursor: stage === "grid" ? "pointer" : "default",
               }}
@@ -202,25 +195,19 @@ export default function MusicPage() {
                 stage === "grid"
                   ? {
                       scale: 1.02,
-                      transition: { duration: 0.2 },
+                      boxShadow: "0 8px 30px rgba(0, 0, 0, 0.3)",
+                      transition: { duration: 0.3 },
                     }
                   : {}
               }
             >
-              <div
-                className="slide__img"
-                style={{ position: "relative", width: "100%", height: "100%" }}
-              >
-                <Image
+              <div className="slide__img">
+                <OptimizedImage
                   src="/img/demo1/1.jpg"
                   alt={`Music slide ${index + 1}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  style={{ objectFit: "cover" }}
-                  priority={index < 2} // Prioritize loading for first two slides
-                  quality={75}
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEDQIHXG8H/QAAAABJRU5ErkJggg=="
+                  asBackground
+                  priority={index < 2}
+                  quality={85}
                 />
               </div>
             </motion.div>
@@ -228,21 +215,13 @@ export default function MusicPage() {
         </div>
 
         <div className="clip" ref={clipRef}>
-          <div
-            className="clip__img"
-            ref={clipImageRef}
-            style={{ position: "relative" }}
-          >
-            <Image
+          <div className="clip__img" ref={clipImageRef}>
+            <OptimizedImage
               src="/img/demo1/1.jpg"
               alt="Main cover image"
-              fill
-              priority={true}
+              asBackground
+              priority
               quality={90}
-              sizes="100vw"
-              style={{ objectFit: "cover" }}
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEDQIHXG8H/QAAAABJRU5ErkJggg=="
             />
           </div>
         </div>

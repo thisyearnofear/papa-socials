@@ -7,7 +7,7 @@ import {
 import SocialLinks from "../../components/SocialLinks";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import Image from "next/image";
+import { OptimizedImage } from "../../components/OptimizedImage";
 
 // Social media icons for floating animation
 const socialIcons = [
@@ -18,7 +18,6 @@ const socialIcons = [
 ];
 
 export default function SocialPage() {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
@@ -220,13 +219,6 @@ export default function SocialPage() {
     return () => {};
   }, [stage, titleRef, handleSlideClick, slidesRef]);
 
-  // Preload the cover image
-  useEffect(() => {
-    const preloadImage = new globalThis.Image();
-    preloadImage.src = "/img/demo2/1.jpg";
-    preloadImage.onload = () => setImageLoaded(true);
-  }, []);
-
   return (
     <>
       <Head>
@@ -266,39 +258,27 @@ export default function SocialPage() {
                   : {}
               }
             >
-              <div
-                className="slide__img"
-                style={{
-                  backgroundImage: `url(/img/demo2/1.jpg)`,
-                  opacity: 1,
-                  visibility: "visible",
-                }}
-              />
+              <div className="slide__img">
+                <OptimizedImage
+                  src="/img/demo2/1.jpg"
+                  alt={`Social slide ${index + 1}`}
+                  asBackground
+                  priority={index < 2}
+                  quality={85}
+                />
+              </div>
             </motion.div>
           ))}
         </div>
 
         <div className="clip" ref={clipRef}>
-          <div
-            className="clip__img"
-            ref={clipImageRef}
-            style={{ position: "relative", width: "100%", height: "100%" }}
-          >
-            <Image
+          <div className="clip__img" ref={clipImageRef}>
+            <OptimizedImage
               src="/img/demo2/1.jpg"
               alt="Connect with PAPA"
-              fill
-              priority={true}
-              quality={85}
-              style={{
-                objectFit: "cover",
-                opacity: imageLoaded ? 1 : 0,
-                transition: "opacity 0.3s ease-in",
-              }}
-              sizes="100vw"
-              onLoadingComplete={() => setImageLoaded(true)}
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+              asBackground
+              priority
+              quality={90}
             />
           </div>
         </div>

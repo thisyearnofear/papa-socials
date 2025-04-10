@@ -8,6 +8,7 @@ import {
 } from "../../hooks/useClipAnimation";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { OptimizedImage } from "../../components/OptimizedImage";
 
 // Calendar icons for floating animation
 const calendarIcons = [
@@ -211,44 +212,38 @@ export default function EventsPage() {
 
       <Layout>
         <div className="slides" ref={slidesRef}>
-          <div className="slide">
+          {[1, 2, 3, 4, 5].map((_, index) => (
             <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide slide--current">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-            ></div>
-          </div>
-          <div className="slide">
-            <div
-              className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-            ></div>
-          </div>
+              key={index}
+              className={`slide ${index === 2 ? "slide--current" : ""}`}
+              onClick={() => stage === "grid" && handleSlideClick(index)}
+              style={{
+                cursor: stage === "grid" ? "pointer" : "default",
+              }}
+            >
+              <div className="slide__img">
+                <OptimizedImage
+                  src="/img/demo3/1.jpg"
+                  alt={`Event slide ${index + 1}`}
+                  asBackground
+                  priority={index < 2}
+                  quality={85}
+                />
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="clip" ref={clipRef}>
-          <div
-            className="clip__img"
-            ref={clipImageRef}
-            style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
-          ></div>
+          <div className="clip__img" ref={clipImageRef}>
+            <OptimizedImage
+              src="/img/demo3/1.jpg"
+              alt="Main event image"
+              asBackground
+              priority
+              quality={90}
+            />
+          </div>
         </div>
 
         <div className="cover">
@@ -519,12 +514,13 @@ export default function EventsPage() {
                           flexShrink: 0,
                         }}
                       >
-                        <Image
+                        <OptimizedImage
                           src="/img/demo3/2.jpg"
                           alt="Africa Rising Music Conference"
                           fill
                           style={{ objectFit: "cover", borderRadius: "8px" }}
                           priority
+                          quality={85}
                         />
                       </div>
 
@@ -662,11 +658,12 @@ export default function EventsPage() {
                           flexShrink: 0,
                         }}
                       >
-                        <Image
+                        <OptimizedImage
                           src="/img/demo3/3.jpg"
                           alt="Bassline Fest"
                           fill
                           style={{ objectFit: "cover", borderRadius: "8px" }}
+                          quality={85}
                         />
                       </div>
 

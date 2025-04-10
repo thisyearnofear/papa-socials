@@ -7,6 +7,7 @@ import {
 import React, { useEffect, useCallback } from "react";
 import { bandMembers } from "../../data/band-members";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { OptimizedImage } from "../../components/OptimizedImage";
 
 // Music instrument icons for floating animation
 const instrumentIcons = [
@@ -174,20 +175,14 @@ export default function BandPage() {
                 cursor: stage === "grid" ? "pointer" : "default",
               }}
             >
-              <div
-                className="slide__img"
-                style={{
-                  backgroundImage: `url(${member.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
-                {stage === "grid" && (
-                  <div className="slide__info">
-                    <h3>{member.name}</h3>
-                    <p>{member.instrument}</p>
-                  </div>
-                )}
+              <div className="slide__img">
+                <OptimizedImage
+                  src={member.image}
+                  alt={`${member.name}'s photo`}
+                  asBackground
+                  priority={index === 0}
+                  quality={85}
+                />
               </div>
             </div>
           ))}
