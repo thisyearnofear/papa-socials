@@ -275,65 +275,316 @@ export default function EventsPage() {
               </div>
 
               <div className="events-content">
-                <div className="event-list">
+                <div
+                  className="event-list"
+                  style={{
+                    maxWidth: "1200px",
+                    margin: "0 auto",
+                    padding: "20px",
+                  }}
+                >
                   {/* Event 1 - Africa Rising Music Conference */}
-                  <div className="event-item">
-                    <div className="event-date">
-                      <span className="event-month">MAY</span>
-                      <span className="event-day">22</span>
-                      <span className="event-year">2025</span>
-                    </div>
-                    <div className="event-details">
-                      <h3>Africa Rising Music Conference 2025</h3>
-                      <p className="event-location">
-                        Constitution Hill, 11 Kotze street, Braamfontein
-                        Johannesburg, South Africa
-                      </p>
-                      <p className="event-time">Thu 09:30 - Fri 23:59</p>
-                      <p className="event-description">
-                        Presented by Africa Rising Music Conference 2025
-                      </p>
-                      <a
-                        href="https://ra.co/events/2110727"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="event-tickets"
+                  <div
+                    className="event-item"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      marginBottom: "40px",
+                      padding: "20px",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: "20px",
+                        width: "100%",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "200px",
+                          height: "200px",
+                          position: "relative",
+                          flexShrink: 0,
+                        }}
                       >
-                        Get Tickets
-                      </a>
+                        <Image
+                          src="/img/demo3/2.jpg"
+                          alt="Africa Rising Music Conference"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      </div>
+
+                      <div
+                        className="event-date"
+                        style={{
+                          textAlign: "center",
+                          padding: "10px",
+                          borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        }}
+                      >
+                        <span
+                          className="event-month"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          MAY
+                        </span>
+                        <span
+                          className="event-day"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          22
+                        </span>
+                        <span
+                          className="event-year"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                          }}
+                        >
+                          2025
+                        </span>
+                      </div>
+
+                      <div
+                        className="event-details"
+                        style={{
+                          flex: 1,
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          ARMC 2025
+                        </h3>
+                        <p
+                          className="event-location"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          11 Kotze street, Braamfontein Joburg, SA
+                        </p>
+                        <p
+                          className="event-time"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Thu 09:30 - Fri 23:59
+                        </p>
+                        <p
+                          className="event-description"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "15px",
+                          }}
+                        >
+                          Presented by Africa Rising Music Conference 2025
+                        </p>
+                        <a
+                          href="https://ra.co/events/2110727"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="event-tickets"
+                          style={{
+                            display: "inline-block",
+                            padding: "8px 16px",
+                            backgroundColor: "transparent",
+                            border: "1px solid white",
+                            color: "white",
+                            borderRadius: "4px",
+                            textDecoration: "none",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          Get Tickets
+                        </a>
+                      </div>
                     </div>
                   </div>
 
                   {/* Event 2 - Bassline Fest */}
-                  <div className="event-item">
-                    <div className="event-date">
-                      <span className="event-month">MAY</span>
-                      <span className="event-day">24-25</span>
-                      <span className="event-year">2025</span>
-                    </div>
-                    <div className="event-details">
-                      <h3>Bassline Fest 2025</h3>
-                      <p className="event-location">
-                        Constitutional Hill, Johannesburg, South Africa
-                      </p>
-                      <p className="event-time">Sat & Sun - All Day</p>
-                      <p className="event-description">
-                        Presented by Bassline Fest 2025
-                      </p>
-                      <a
-                        href="https://bassline.co.za/bassline-fest/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="event-tickets"
+                  <div
+                    className="event-item"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      marginBottom: "40px",
+                      padding: "20px",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: "20px",
+                        width: "100%",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "200px",
+                          height: "200px",
+                          position: "relative",
+                          flexShrink: 0,
+                        }}
                       >
-                        Get Tickets
-                      </a>
+                        <Image
+                          src="/img/demo3/3.jpg"
+                          alt="Bassline Fest"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                      </div>
+
+                      <div
+                        className="event-date"
+                        style={{
+                          textAlign: "center",
+                          padding: "10px",
+                          borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                        }}
+                      >
+                        <span
+                          className="event-month"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          MAY
+                        </span>
+                        <span
+                          className="event-day"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          24-25
+                        </span>
+                        <span
+                          className="event-year"
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                          }}
+                        >
+                          2025
+                        </span>
+                      </div>
+
+                      <div
+                        className="event-details"
+                        style={{
+                          flex: 1,
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          Bassline Fest 2025
+                        </h3>
+                        <p
+                          className="event-location"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Constitutional Hill, Johannesburg, South Africa
+                        </p>
+                        <p
+                          className="event-time"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Sat & Sun - All Day
+                        </p>
+                        <p
+                          className="event-description"
+                          style={{
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            marginBottom: "15px",
+                          }}
+                        >
+                          Presented by Bassline Fest 2025
+                        </p>
+                        <a
+                          href="https://bassline.co.za/bassline-fest/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="event-tickets"
+                          style={{
+                            display: "inline-block",
+                            padding: "8px 16px",
+                            backgroundColor: "transparent",
+                            border: "1px solid white",
+                            color: "white",
+                            borderRadius: "4px",
+                            textDecoration: "none",
+                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                            transition: "all 0.3s ease",
+                          }}
+                        >
+                          Get Tickets
+                        </a>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Support Information */}
-                  <div className="support-info">
-                    <p className="support-text">
+                  {/* Support Information with centered styling */}
+                  <div
+                    className="support-info"
+                    style={{
+                      textAlign: "center",
+                      maxWidth: "800px",
+                      margin: "40px auto",
+                      padding: "20px",
+                    }}
+                  >
+                    <p
+                      className="support-text"
+                      style={{
+                        fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
+                        marginBottom: "20px",
+                        lineHeight: "1.6",
+                      }}
+                    >
                       Papa is supported by PRS Foundation&apos;s International
                       Showcase Fund, which is run by PRS Foundation in
                       partnership with Department of Business and Trade (DBT),
@@ -348,6 +599,7 @@ export default function EventsPage() {
                         alt="International Showcase Fund Logo"
                         width={200}
                         height={100}
+                        style={{ margin: "0 auto" }}
                       />
                     </div>
                   </div>

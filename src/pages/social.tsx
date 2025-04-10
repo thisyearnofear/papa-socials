@@ -3,7 +3,6 @@ import Layout from "../../components/Layout";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-  CustomAnimationOptions,
 } from "../../hooks/useClipAnimation";
 import SocialLinks from "../../components/SocialLinks";
 import React, { useEffect, useState } from "react";
@@ -349,18 +348,30 @@ export default function SocialPage() {
                   className="social-back"
                   onClick={(e) => {
                     e.preventDefault();
-                    // Just call toggleEffect directly - the onStageChange callback will handle hiding the feeds
                     toggleEffect({
-                      // Custom options for transitioning back to grid view
                       contentSelector: ".social-feeds-container",
                       onCompleteCallback: () => {
+                        setShowSocialFeeds(false);
                         console.log("Successfully returned to grid view");
                       },
-                    } as CustomAnimationOptions);
+                    } as const);
+                  }}
+                  style={{
+                    position: "absolute",
+                    right: "20px",
+                    top: "20px",
+                    padding: "8px 16px",
+                    backgroundColor: "transparent",
+                    border: "1px solid white",
+                    color: "white",
+                    cursor: "pointer",
+                    borderRadius: "4px",
+                    zIndex: 1000,
                   }}
                 >
                   Back
                 </button>
+                <h2>SOCIAL MEDIA</h2>
               </div>
 
               <div className="social-content">
