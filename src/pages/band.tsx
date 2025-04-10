@@ -25,7 +25,6 @@ export default function BandPage() {
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
 
-  // Use the refactored hook with custom options for band/discography page
   const {
     clipRef,
     clipImageRef,
@@ -164,7 +163,11 @@ export default function BandPage() {
             >
               <div
                 className="slide__img"
-                style={{ backgroundImage: `url(${member.image})` }}
+                style={{
+                  backgroundImage: `url(${member.image})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
               >
                 {stage === "grid" && (
                   <div className="slide__info">
@@ -238,7 +241,7 @@ export default function BandPage() {
                         pointerEvents: "none",
                       }}
                     >
-                      meet us
+                      jambo
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -399,9 +402,13 @@ export default function BandPage() {
               className="band-member-container"
               style={{
                 pointerEvents: "auto",
-                opacity: 0.8,
+                opacity: 1,
                 marginLeft: "20px",
                 marginRight: "20px",
+                paddingBottom: "40px",
+                height: "100vh",
+                overflowY: "auto",
+                background: "rgba(0, 0, 0, 0.85)",
               }}
               initial={{
                 opacity: 0,
@@ -428,7 +435,22 @@ export default function BandPage() {
                 },
               }}
             >
-              <div className="band-member-header">
+              <div
+                className="band-member-header"
+                style={{
+                  padding: "20px",
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 10,
+                  background: "rgba(0, 0, 0, 0.9)",
+                  backdropFilter: "blur(10px)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <h2>THE BAND</h2>
                 <button
                   className="back-button"
                   onClick={(e) => {
@@ -442,9 +464,6 @@ export default function BandPage() {
                     });
                   }}
                   style={{
-                    position: "absolute",
-                    right: "20px",
-                    top: "20px",
                     padding: "8px 16px",
                     backgroundColor: "transparent",
                     border: "1px solid white",
@@ -456,44 +475,172 @@ export default function BandPage() {
                 >
                   Back
                 </button>
-                <h2>BAND MEMBER</h2>
               </div>
-              <div className="band-member-content">
+
+              <div className="band-member-content" style={{ padding: "20px" }}>
+                {/* Selected Member */}
                 {bandMembers.find((member) => member.id === selectedMember) && (
-                  <div className="band-member-details">
+                  <div
+                    className="selected-member"
+                    style={{
+                      marginBottom: "40px",
+                    }}
+                  >
                     <div
-                      className="band-member-image"
                       style={{
-                        backgroundImage: `url(${
-                          bandMembers.find(
-                            (member) => member.id === selectedMember
-                          )?.image
-                        })`,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "20px",
+                        textAlign: "center",
+                        padding: "20px",
+                        maxWidth: "800px",
+                        margin: "0 auto",
                       }}
-                    />
-                    <div className="band-member-info">
-                      <h3>
-                        {
-                          bandMembers.find(
-                            (member) => member.id === selectedMember
-                          )?.name
-                        }
-                      </h3>
-                      <p>
-                        {
-                          bandMembers.find(
-                            (member) => member.id === selectedMember
-                          )?.instrument
-                        }
-                      </p>
-                      {bandMembers.find(
-                        (member) => member.id === selectedMember
-                      )?.isGroupPhoto && (
-                        <p className="group-photo-label">Group Photo</p>
-                      )}
+                    >
+                      <div
+                        className="band-member-image"
+                        style={{
+                          backgroundImage: `url(${
+                            bandMembers.find(
+                              (member) => member.id === selectedMember
+                            )?.image
+                          })`,
+                          width: "100%",
+                          height: "400px",
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          marginBottom: "20px",
+                          borderRadius: "8px",
+                          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+                        }}
+                      />
+                      <div className="band-member-info">
+                        <h3
+                          style={{
+                            fontSize: "2rem",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          {
+                            bandMembers.find(
+                              (member) => member.id === selectedMember
+                            )?.name
+                          }
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: "1.2rem",
+                            color: "rgba(255, 255, 255, 0.8)",
+                            marginBottom: "20px",
+                          }}
+                        >
+                          {
+                            bandMembers.find(
+                              (member) => member.id === selectedMember
+                            )?.instrument
+                          }
+                        </p>
+                        {bandMembers.find(
+                          (member) => member.id === selectedMember
+                        )?.isGroupPhoto && (
+                          <p
+                            className="group-photo-label"
+                            style={{
+                              background: "rgba(255, 255, 255, 0.1)",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "0.8rem",
+                              display: "inline-block",
+                            }}
+                          >
+                            Group Photo
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
+
+                {/* All Band Members List */}
+                <div className="all-members">
+                  <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
+                    ALL BAND MEMBERS
+                  </h3>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(250px, 1fr))",
+                      gap: "20px",
+                      maxWidth: "1200px",
+                      margin: "0 auto",
+                    }}
+                  >
+                    {bandMembers.map((member) => (
+                      <motion.div
+                        key={member.id}
+                        className={`member-card ${
+                          selectedMember === member.id ? "selected" : ""
+                        }`}
+                        whileHover={{
+                          scale: 1.03,
+                          transition: { duration: 0.2 },
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor:
+                            selectedMember === member.id
+                              ? "rgba(255, 255, 255, 0.15)"
+                              : "rgba(255, 255, 255, 0.05)",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          transition: "all 0.3s ease",
+                          border:
+                            selectedMember === member.id
+                              ? "1px solid rgba(255, 255, 255, 0.5)"
+                              : "1px solid rgba(255, 255, 255, 0.1)",
+                        }}
+                        onClick={() => setSelectedMember(member.id)}
+                      >
+                        <div
+                          style={{
+                            height: "200px",
+                            backgroundImage: `url(${member.image})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                          }}
+                        />
+                        <div style={{ padding: "15px" }}>
+                          <h4 style={{ marginBottom: "5px" }}>{member.name}</h4>
+                          <p
+                            style={{
+                              color: "rgba(255, 255, 255, 0.7)",
+                              fontSize: "0.9rem",
+                            }}
+                          >
+                            {member.instrument}
+                          </p>
+                          {member.isGroupPhoto && (
+                            <span
+                              style={{
+                                display: "inline-block",
+                                fontSize: "0.7rem",
+                                padding: "2px 5px",
+                                background: "rgba(255, 255, 255, 0.2)",
+                                borderRadius: "3px",
+                                marginTop: "5px",
+                              }}
+                            >
+                              Group
+                            </span>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -520,6 +667,11 @@ export default function BandPage() {
 
           .interactive-title:hover::after {
             width: 80%;
+          }
+
+          .member-card.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
           }
 
           @media (max-width: 768px) {
@@ -550,6 +702,14 @@ export default function BandPage() {
 
             .interactive:active::before {
               opacity: 1;
+            }
+
+            .selected-member {
+              flex-direction: column;
+            }
+
+            .band-member-image {
+              height: 300px !important;
             }
           }
         `}</style>

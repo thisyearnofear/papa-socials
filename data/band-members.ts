@@ -14,52 +14,46 @@ export const bandMembers: BandMember[] = [
     name: "Hootenanny, Brixton",
     instrument: "Full Band",
     image: "/img/demo4/1.jpg",
-    isGroupPhoto: true
+    isGroupPhoto: true,
   },
   {
     id: 2,
-    name: "John Smith",
-    instrument: "Lead Vocals",
-    image: "/img/demo4/2.jpg"
+    name: "Papa",
+    instrument: "vocals",
+    image: "/img/demo4/2.jpg",
   },
   {
     id: 3,
-    name: "Maria Rodriguez",
-    instrument: "Bass Guitar",
-    image: "/img/demo4/3.jpg"
+    name: "anatu",
+    instrument: "production",
+    image: "/img/demo4/3.jpg",
   },
   {
     id: 4,
-    name: "PAPA Studio Session",
-    instrument: "Full Band",
+    name: "Andrew Ace",
+    instrument: "bass",
     image: "/img/demo4/4.jpg",
-    isGroupPhoto: true
+    isGroupPhoto: true,
   },
   {
     id: 5,
-    name: "David Chen",
-    instrument: "Drums",
-    image: "/img/demo4/5.jpg"
+    name: "Oscar",
+    instrument: "Sax",
+    image: "/img/demo4/5.jpg",
   },
   // Add more demo members to reach 30+
   {
     id: 6,
-    name: "Sarah Johnson",
-    instrument: "Lead Guitar",
-    image: "/img/demo4/2.jpg"
+    name: "Congo",
+    instrument: "djembe",
+    image: "/img/demo4/6.jpg",
   },
   {
     id: 7,
-    name: "PAPA Rehearsal",
-    instrument: "Full Band",
-    image: "/img/demo4/3.jpg",
-    isGroupPhoto: true
+    name: "Cowie",
+    instrument: "drums",
+    image: "/img/demo4/7.jpg",
+    isGroupPhoto: true,
   },
   // Continue with more members...
-  {
-    id: 30,
-    name: "Michael Brown",
-    instrument: "Keyboards",
-    image: "/img/demo4/5.jpg"
-  }
 ];

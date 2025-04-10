@@ -237,10 +237,10 @@ export default function SocialPage() {
           className={`slides ${stage === "grid" ? "grid" : ""}`}
           ref={slidesRef}
         >
-          {[2, 3, 1, 4, 5].map((num, index) => (
+          {[1, 1, 1, 1, 1].map((num, index) => (
             <motion.div
-              key={num}
-              className={`slide ${num === 1 ? "slide--current" : ""}`}
+              key={index}
+              className={`slide ${index === 2 ? "slide--current" : ""}`}
               onClick={() => stage === "grid" && handleSlideClick(index)}
               style={{
                 cursor: stage === "grid" ? "pointer" : "default",
@@ -258,7 +258,7 @@ export default function SocialPage() {
               <div
                 className="slide__img"
                 style={{
-                  backgroundImage: `url(/img/demo2/${num}.jpg)`,
+                  backgroundImage: `url(/img/demo2/1.jpg)`,
                   opacity: 1,
                   visibility: "visible",
                 }}
