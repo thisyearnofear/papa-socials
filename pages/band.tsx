@@ -1,19 +1,19 @@
 import Head from "next/head";
-import Layout from "../../components/Layout";
+import Layout from "../components/Layout";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-} from "../../hooks/useClipAnimation";
+} from "../hooks/useClipAnimation";
 import React, { useEffect, useCallback, useState } from "react";
-import { bandMembers } from "../../data/band-members";
+import { bandMembers } from "../data/band-members";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { OptimizedImage } from "../../components/OptimizedImage";
+import { OptimizedImage } from "../components/OptimizedImage";
 import dynamic from "next/dynamic";
 
 // Dynamically import the BandMemberContent component to avoid hydration issues
 const BandMemberContent = dynamic(
   () =>
-    import("../../components/BandMemberContent").then(
+    import("../components/BandMemberContent").then(
       (mod) => mod.BandMemberContent
     ),
   { ssr: false }
@@ -167,7 +167,7 @@ export default function BandPage() {
         });
       }
     },
-    [stage, handleSlideClick, bandMembers]
+    [stage, handleSlideClick]
   );
 
   const handleBackClick = useCallback(

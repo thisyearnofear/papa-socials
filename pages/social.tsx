@@ -1,13 +1,13 @@
 import Head from "next/head";
-import Layout from "../../components/Layout";
+import Layout from "../components/Layout";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-} from "../../hooks/useClipAnimation";
-import SocialLinks from "../../components/SocialLinks";
+} from "../hooks/useClipAnimation";
+import SocialLinks from "../components/SocialLinks";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { OptimizedImage } from "../../components/OptimizedImage";
+import { OptimizedImage } from "../components/OptimizedImage";
 
 // Social media icons for floating animation
 const socialIcons = [

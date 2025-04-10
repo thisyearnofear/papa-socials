@@ -1,0 +1,533 @@
+/* Filecoin Archive Page Styles */
+
+/* Basic content structure - integrate with site design */
+.content-wrapper .filecoin-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.filecoin-tab {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.filecoin-tab:hover {
+  opacity: 1;
+}
+
+.filecoin-tab.active {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.filecoin-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00a4ff, #7f66ff);
+}
+
+/* Message Boxes */
+.filecoin-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.filecoin-message.error {
+  background-color: rgba(255, 87, 87, 0.2);
+  border: 1px solid rgba(255, 87, 87, 0.5);
+}
+
+.filecoin-message.success {
+  background-color: rgba(87, 255, 135, 0.2);
+  border: 1px solid rgba(87, 255, 135, 0.5);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Content Area */
+.filecoin-content {
+  min-height: 400px;
+}
+
+.filecoin-browse,
+.filecoin-upload,
+.filecoin-verify {
+  padding: 1rem 0;
+}
+
+.section-title {
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.filecoin-loading {
+  text-align: center;
+  padding: 2rem;
+  opacity: 0.7;
+}
+
+.filecoin-empty {
+  text-align: center;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Asset Grid */
+.filecoin-assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.filecoin-asset-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.filecoin-asset-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.filecoin-asset-preview {
+  height: 180px;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.filecoin-asset-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.filecoin-asset-info {
+  padding: 1rem;
+}
+
+.filecoin-asset-info h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filecoin-asset-date,
+.filecoin-asset-type {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Upload Form */
+.filecoin-upload-form {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.filecoin-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.filecoin-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.filecoin-file-input {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  color: #fff;
+}
+
+.filecoin-selected-files {
+  margin-top: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.filecoin-selected-files ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.filecoin-selected-files li {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.filecoin-text-input,
+.filecoin-textarea,
+.filecoin-select {
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.filecoin-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.filecoin-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23fff' viewBox='0 0 12 12'%3E%3Cpath d='M6 8.825L1.175 4 2.05 3.125 6 7.075 9.95 3.125 10.825 4 6 8.825z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+/* Match site button styles */
+.filecoin-upload-button,
+.filecoin-verify-button,
+.filecoin-download-button,
+.filecoin-ipfs-link {
+  background: var(--color-bg-item);
+  color: var(--color-text);
+  border: 1px solid var(--color-link);
+  border-radius: 4px;
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+}
+
+.filecoin-upload-button:hover,
+.filecoin-verify-button:hover,
+.filecoin-download-button:hover,
+.filecoin-ipfs-link:hover {
+  background: var(--color-link);
+  color: var(--color-bg);
+  transform: translateY(-2px);
+}
+
+.filecoin-upload-button:disabled,
+.filecoin-verify-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Verification Results */
+.filecoin-verification-results {
+  margin-top: 2rem;
+}
+
+.filecoin-table-wrapper {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.filecoin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.filecoin-table th,
+.filecoin-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filecoin-table th {
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+}
+
+.filecoin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.status-pending {
+  display: inline-flex;
+  align-items: center;
+  color: #ffbb00;
+  font-weight: 500;
+}
+
+.status-verified {
+  display: inline-flex;
+  align-items: center;
+  color: #00cc66;
+  font-weight: 500;
+}
+
+.status-failed {
+  display: inline-flex;
+  align-items: center;
+  color: #ff5757;
+  font-weight: 500;
+}
+
+.status-pending::before,
+.status-verified::before,
+.status-failed::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-pending::before {
+  background-color: #ffbb00;
+}
+
+.status-verified::before {
+  background-color: #00cc66;
+}
+
+.status-failed::before {
+  background-color: #ff5757;
+}
+
+.filecoin-cid {
+  font-family: monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.filecoin-view-link {
+  display: inline-block;
+  padding: 5px 10px;
+  background: rgba(0, 164, 255, 0.2);
+  border: 1px solid rgba(0, 164, 255, 0.5);
+  border-radius: 4px;
+  color: #00a4ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.filecoin-view-link:hover {
+  background: rgba(0, 164, 255, 0.3);
+}
+
+/* Modal */
+.filecoin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.filecoin-modal-content {
+  background: var(--color-bg);
+  border-radius: 8px;
+  max-width: 900px;
+  width: 100%;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.filecoin-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.filecoin-modal-close:hover {
+  opacity: 1;
+}
+
+.filecoin-modal-title {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #fff;
+  padding-right: 30px;
+}
+
+.filecoin-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.filecoin-modal-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.filecoin-modal-preview audio,
+.filecoin-modal-preview video {
+  width: 100%;
+}
+
+.filecoin-file-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filecoin-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filecoin-detail-item h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #7f66ff;
+  border-bottom: 1px solid rgba(127, 102, 255, 0.3);
+  padding-bottom: 5px;
+}
+
+.filecoin-detail-item p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.filecoin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.filecoin-tag {
+  padding: 5px 10px;
+  background: rgba(0, 164, 255, 0.1);
+  border: 1px solid rgba(0, 164, 255, 0.3);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #00a4ff;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  .filecoin-tabs {
+    flex-wrap: wrap;
+  }
+
+  .filecoin-tab {
+    flex: 1 0 auto;
+    padding: 1rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .filecoin-assets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .filecoin-modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .filecoin-assets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filecoin-table th,
+  .filecoin-table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .cid {
+    max-width: 120px;
+  }
+}

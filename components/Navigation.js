@@ -2,8 +2,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
-export default function Navigation() {
-  const router = useRouter();
+// Create a client-side only version of navigation to avoid hydration issues
+const ClientNavigation = ({ router }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -68,6 +68,15 @@ export default function Navigation() {
         >
           Artist Profile
         </a>
+      ) : router.pathname === "/filecoin" ? (
+        <a
+          className="frame__prev"
+          href="https://docs.filecoin.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn about Filecoin
+        </a>
       ) : (
         <a
           className="frame__prev"
@@ -117,6 +126,12 @@ export default function Navigation() {
               >
                 Band
               </Link>
+              <Link
+                href="/filecoin"
+                className={router.pathname === "/filecoin" ? "active" : ""}
+              >
+                Archive
+              </Link>
             </nav>
           </div>
         </div>
@@ -163,8 +178,61 @@ export default function Navigation() {
           >
             Band
           </Link>
+          <Link
+            href="/filecoin"
+            className={
+              router.pathname === "/filecoin"
+                ? "frame__demo frame__demo--current"
+                : "frame__demo"
+            }
+          >
+            Archive
+          </Link>
         </nav>
       )}
     </div>
   );
+};
+
+// Server-side compatible navigation component
+export default function Navigation() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  // Only render full navigation on client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Simple navigation for server-side rendering
+  if (!mounted) {
+    return (
+      <div className="frame">
+        <div className="frame__title">
+          <h1 className="frame__title-main">PAPA</h1>
+        </div>
+        <nav className="frame__demos">
+          <span>Explore: </span>
+          <Link href="/" className="frame__demo">
+            Music
+          </Link>
+          <Link href="/social" className="frame__demo">
+            Connect
+          </Link>
+          <Link href="/events" className="frame__demo">
+            Events
+          </Link>
+          <Link href="/band" className="frame__demo">
+            Band
+          </Link>
+          <Link href="/filecoin" className="frame__demo">
+            Archive
+          </Link>
+        </nav>
+      </div>
+    );
+  }
+
+  // Return client-side navigation once mounted
+  return <ClientNavigation router={router} />;
 }
