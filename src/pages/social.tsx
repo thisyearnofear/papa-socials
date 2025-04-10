@@ -411,12 +411,10 @@ export default function SocialPage() {
                   <h3>INSTAGRAM</h3>
                   <div className="instagram-container">
                     <iframe
-                      src="//lightwidget.com/widgets/9e75cefcf6095363ac548821cb61c61b.html"
-                      scrolling="no"
-                      allowTransparency={true}
-                      className="lightwidget-widget"
-                      style={{ width: "100%", border: 0, overflow: "hidden" }}
-                    ></iframe>
+                      src="https://embedsocial.com/api/pro_hashtag/b23de1b71f79c3f908e907fe03337529e3eb0f4b"
+                      width="900px"
+                      height="1200px"
+                    />
                   </div>
                 </div>
 
