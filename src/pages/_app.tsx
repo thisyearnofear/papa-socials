@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        {/* Favicon is now managed in _document.js */}
         <link rel="stylesheet" href="https://use.typekit.net/qhm2ggg.css" />
       </Head>
       <Component {...pageProps} />
