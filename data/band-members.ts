@@ -11,8 +11,8 @@ export const bandMembers: BandMember[] = [
   // Group photos interspersed throughout
   {
     id: 1,
-    name: "Hootenanny, Brixton",
-    instrument: "Full Band",
+    name: "Hoots",
+    instrument: "Jim Jams",
     image: "/img/demo4/1.jpg",
     isGroupPhoto: true,
   },
@@ -33,7 +33,6 @@ export const bandMembers: BandMember[] = [
     name: "Andrew Ace",
     instrument: "bass",
     image: "/img/demo4/4.jpg",
-    isGroupPhoto: true,
   },
   {
     id: 5,
@@ -53,7 +52,14 @@ export const bandMembers: BandMember[] = [
     name: "Cowie",
     instrument: "drums",
     image: "/img/demo4/7.jpg",
+  },
+  {
+    id: 8,
+    name: "Jim Jams",
+    instrument: "harmonies",
+    image: "/img/demo4/8.jpg",
     isGroupPhoto: true,
   },
+
   // Continue with more members...
 ];

@@ -4,17 +4,27 @@ import {
   useClipAnimation,
   ClipAnimationReturn,
 } from "../../hooks/useClipAnimation";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { bandMembers } from "../../data/band-members";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { OptimizedImage } from "../../components/OptimizedImage";
+import dynamic from "next/dynamic";
 
-// Music instrument icons for floating animation
+// Dynamically import the BandMemberContent component to avoid hydration issues
+const BandMemberContent = dynamic(
+  () =>
+    import("../../components/BandMemberContent").then(
+      (mod) => mod.BandMemberContent
+    ),
+  { ssr: false }
+);
+
+// Simplified instrument icons for floating animation
 const instrumentIcons = [
-  { icon: "🎸", x: -20, y: -20, rotation: -15 },
-  { icon: "🥁", x: 20, y: -30, rotation: 15 },
-  { icon: "🎹", x: -15, y: -40, rotation: -20 },
-  { icon: "🎺", x: 25, y: -25, rotation: 25 },
+  { icon: "🎸", delay: 0 },
+  { icon: "🥁", delay: 0.1 },
+  { icon: "🎹", delay: 0.2 },
+  { icon: "🎺", delay: 0.3 },
 ];
 
 export default function BandPage() {
@@ -23,6 +33,8 @@ export default function BandPage() {
   );
   const [showHint, setShowHint] = React.useState(true);
   const [isCoverHidden, setIsCoverHidden] = React.useState(false);
+  const [showMemberDetails, setShowMemberDetails] = React.useState(false);
+  const [isBrowser, setIsBrowser] = useState(false);
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
 
@@ -45,16 +57,26 @@ export default function BandPage() {
     handleSlideClick,
   }: ClipAnimationReturn = useClipAnimation({
     initialStage: "initial",
-    stages: ["initial", "grid", "discography"],
+    stages: ["initial", "grid", "members"],
     callbacks: {
-      onStageChange: (newStage: string) => {
-        console.log(`Band page transitioned to ${newStage} stage`);
+      onStageChange: (newStage: string, index?: number) => {
+        console.log(`Band page transitioned to ${newStage} stage`, index);
 
-        // Update state based on stage
         if (newStage === "grid") {
           setIsCoverHidden(true);
+          setSelectedMember(null);
+          setShowMemberDetails(false);
+        } else if (newStage === "members") {
+          setShowMemberDetails(true);
+          console.log("Show member details set to true");
+          // If an index was provided, set the selected member
+          if (index !== undefined && bandMembers[index]) {
+            console.log("Setting selected member to:", bandMembers[index].id);
+            setSelectedMember(bandMembers[index].id);
+          }
         } else {
           setIsCoverHidden(false);
+          setShowMemberDetails(false);
         }
       },
     },
@@ -72,7 +94,23 @@ export default function BandPage() {
     },
   });
 
-  // Enhanced title click handler with haptic feedback
+  // Simplified floating animation
+  useEffect(() => {
+    if (stage === "grid") {
+      iconsControls.start((i) => ({
+        y: [-5, 5],
+        transition: {
+          duration: 1.5,
+          ease: "easeInOut",
+          delay: instrumentIcons[i].delay,
+          repeat: Infinity,
+          repeatType: "reverse",
+        },
+      }));
+    }
+  }, [stage, iconsControls]);
+
+  // Enhanced title click handler with simplified animation
   const handleTitleClick = useCallback(() => {
     if (stage === "grid") {
       if (navigator.vibrate) {
@@ -80,38 +118,13 @@ export default function BandPage() {
       }
 
       titleControls.start({
-        scale: [1, 1.1, 1],
-        transition: { duration: 0.3 },
+        scale: 1.05,
+        transition: { duration: 0.2 },
       });
 
-      handleSlideClick(0, {
-        onCompleteCallback: () => {
-          setSelectedMember(bandMembers[0]?.id || null);
-        },
-      });
+      handleSlideClick(0);
     }
   }, [stage, handleSlideClick, titleControls]);
-
-  // Floating animation for instrument icons
-  useEffect(() => {
-    if (stage === "grid") {
-      const floatingAnimation = async () => {
-        await iconsControls.start((i) => ({
-          y: [0, -20, 0],
-          x: [0, instrumentIcons[i].x, 0],
-          rotate: [0, instrumentIcons[i].rotation, 0],
-          transition: {
-            duration: 2,
-            ease: "easeInOut",
-            delay: i * 0.2,
-            repeat: Infinity,
-            repeatType: "reverse",
-          },
-        }));
-      };
-      floatingAnimation();
-    }
-  }, [stage, iconsControls]);
 
   // Auto-hide hint after delay
   useEffect(() => {
@@ -136,6 +149,106 @@ export default function BandPage() {
       }
     }
   }, [stage]);
+
+  const handleMemberClick = useCallback(
+    (index: number) => {
+      if (stage === "grid") {
+        console.log("Clicking band member:", index);
+        // Set selected member ID before the transition
+        setSelectedMember(bandMembers[index].id);
+        console.log("Selected member set to:", bandMembers[index].id);
+
+        // Then trigger the slide animation
+        handleSlideClick(index, {
+          onCompleteCallback: () => {
+            console.log("Slide click complete for index:", index);
+            // State should already be set
+          },
+        });
+      }
+    },
+    [stage, handleSlideClick, bandMembers]
+  );
+
+  const handleBackClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log("Back button clicked");
+      toggleEffect({
+        contentSelector: ".band-member-container",
+        onCompleteCallback: () => {
+          console.log("Toggle effect complete");
+          setSelectedMember(null);
+        },
+      });
+    },
+    [toggleEffect]
+  );
+
+  // For debugging
+  useEffect(() => {
+    console.log("Current state:", {
+      stage,
+      selectedMember,
+      showMemberDetails,
+      isCoverHidden,
+    });
+  }, [stage, selectedMember, showMemberDetails, isCoverHidden]);
+
+  // Debug element existence
+  useEffect(() => {
+    if (stage === "members") {
+      // Check if the container exists when it should
+      const containers = document.querySelectorAll(".band-member-container");
+      console.log("Current containers in DOM:", containers.length);
+      containers.forEach((container, i) => {
+        console.log(
+          `Container ${i} display:`,
+          window.getComputedStyle(container).display
+        );
+      });
+    }
+  }, [stage]);
+
+  // Set isBrowser to true once component mounts
+  useEffect(() => {
+    setIsBrowser(true);
+  }, []);
+
+  // Ensure the band-member-container exists even for CSS transitions
+  useEffect(() => {
+    const DEBUG_CONTAINERS = false; // Set to true to log container info
+
+    // Set up MutationObserver to log when band-member-container is added/removed from DOM
+    if (DEBUG_CONTAINERS) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === "childList") {
+            const containers = document.querySelectorAll(
+              ".band-member-container"
+            );
+            console.log(
+              `[MutationObserver] Band member containers: ${containers.length}`
+            );
+          }
+        });
+      });
+
+      // Start observing the document with the configured parameters
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      return () => observer.disconnect();
+    }
+  }, []);
+
+  // Debug the current stage and selected member
+  useEffect(() => {
+    console.log(
+      `Band page state update - stage: ${stage}, selectedMember: ${selectedMember}`
+    );
+  }, [stage, selectedMember]);
 
   return (
     <>
@@ -162,15 +275,7 @@ export default function BandPage() {
             <div
               key={member.id}
               className={`slide ${index === 0 ? "slide--current" : ""}`}
-              onClick={() => {
-                if (stage === "grid") {
-                  handleSlideClick(index, {
-                    onCompleteCallback: () => {
-                      setSelectedMember(member.id);
-                    },
-                  });
-                }
-              }}
+              onClick={() => handleMemberClick(index)}
               style={{
                 cursor: stage === "grid" ? "pointer" : "default",
               }}
@@ -215,7 +320,6 @@ export default function BandPage() {
           >
             {stage === "grid" && (
               <>
-                {/* Floating instrument icons */}
                 {instrumentIcons.map((icon, i) => (
                   <motion.div
                     key={i}
@@ -226,19 +330,21 @@ export default function BandPage() {
                       fontSize: "20px",
                       opacity: 0.8,
                       pointerEvents: "none",
+                      willChange: "transform",
                     }}
                   >
                     {icon.icon}
                   </motion.div>
                 ))}
 
-                {/* Interactive hint */}
+                {/* Interactive hint with simplified animation */}
                 <AnimatePresence>
                   {showHint && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
                       style={{
                         position: "absolute",
                         top: "-30px",
@@ -403,256 +509,34 @@ export default function BandPage() {
           )}
         </div>
 
-        {/* Band Member Details - appears after slide selection */}
-        <AnimatePresence mode="wait">
-          {stage === "discography" && selectedMember && (
-            <motion.div
-              className="band-member-container"
-              style={{
-                pointerEvents: "auto",
-                opacity: 1,
-                marginLeft: "20px",
-                marginRight: "20px",
-                paddingBottom: "40px",
-                height: "100vh",
-                overflowY: "auto",
-                background: "rgba(0, 0, 0, 0.85)",
-              }}
-              initial={{
-                opacity: 0,
-                y: 50,
-                scale: 0.95,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                transition: {
-                  duration: 0.9,
-                  ease: "easeOut",
-                  delay: 0.2,
-                },
-              }}
-              exit={{
-                opacity: 0,
-                y: -50,
-                scale: 0.95,
-                transition: {
-                  duration: 0.6,
-                  ease: "easeInOut",
-                },
-              }}
-            >
-              <div
-                className="band-member-header"
-                style={{
-                  padding: "20px",
-                  position: "sticky",
-                  top: 0,
-                  zIndex: 10,
-                  background: "rgba(0, 0, 0, 0.9)",
-                  backdropFilter: "blur(10px)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <h2>THE BAND</h2>
-                <button
-                  className="back-button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleEffect({
-                      contentSelector: ".band-member-container",
-                      onCompleteCallback: () => {
-                        setSelectedMember(null);
-                        console.log("Successfully returned to grid view");
-                      },
-                    });
-                  }}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "transparent",
-                    border: "1px solid white",
-                    color: "white",
-                    cursor: "pointer",
-                    borderRadius: "4px",
-                    zIndex: 1000,
-                  }}
-                >
-                  Back
-                </button>
-              </div>
+        {/* Always include a hidden band-member-container for animations - only on client */}
+        {isBrowser && stage !== "members" && (
+          <div
+            className="band-member-container"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              opacity: 0,
+              visibility: "hidden",
+              pointerEvents: "none",
+              display: "none",
+              zIndex: -1,
+            }}
+          />
+        )}
 
-              <div className="band-member-content" style={{ padding: "20px" }}>
-                {/* Selected Member */}
-                {bandMembers.find((member) => member.id === selectedMember) && (
-                  <div
-                    className="selected-member"
-                    style={{
-                      marginBottom: "40px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "20px",
-                        textAlign: "center",
-                        padding: "20px",
-                        maxWidth: "800px",
-                        margin: "0 auto",
-                      }}
-                    >
-                      <div
-                        className="band-member-image"
-                        style={{
-                          backgroundImage: `url(${
-                            bandMembers.find(
-                              (member) => member.id === selectedMember
-                            )?.image
-                          })`,
-                          width: "100%",
-                          height: "400px",
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                          marginBottom: "20px",
-                          borderRadius: "8px",
-                          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
-                        }}
-                      />
-                      <div className="band-member-info">
-                        <h3
-                          style={{
-                            fontSize: "2rem",
-                            marginBottom: "10px",
-                          }}
-                        >
-                          {
-                            bandMembers.find(
-                              (member) => member.id === selectedMember
-                            )?.name
-                          }
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: "1.2rem",
-                            color: "rgba(255, 255, 255, 0.8)",
-                            marginBottom: "20px",
-                          }}
-                        >
-                          {
-                            bandMembers.find(
-                              (member) => member.id === selectedMember
-                            )?.instrument
-                          }
-                        </p>
-                        {bandMembers.find(
-                          (member) => member.id === selectedMember
-                        )?.isGroupPhoto && (
-                          <p
-                            className="group-photo-label"
-                            style={{
-                              background: "rgba(255, 255, 255, 0.1)",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "0.8rem",
-                              display: "inline-block",
-                            }}
-                          >
-                            Group Photo
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* All Band Members List */}
-                <div className="all-members">
-                  <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
-                    ALL BAND MEMBERS
-                  </h3>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fill, minmax(250px, 1fr))",
-                      gap: "20px",
-                      maxWidth: "1200px",
-                      margin: "0 auto",
-                    }}
-                  >
-                    {bandMembers.map((member) => (
-                      <motion.div
-                        key={member.id}
-                        className={`member-card ${
-                          selectedMember === member.id ? "selected" : ""
-                        }`}
-                        whileHover={{
-                          scale: 1.03,
-                          transition: { duration: 0.2 },
-                        }}
-                        style={{
-                          cursor: "pointer",
-                          backgroundColor:
-                            selectedMember === member.id
-                              ? "rgba(255, 255, 255, 0.15)"
-                              : "rgba(255, 255, 255, 0.05)",
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                          transition: "all 0.3s ease",
-                          border:
-                            selectedMember === member.id
-                              ? "1px solid rgba(255, 255, 255, 0.5)"
-                              : "1px solid rgba(255, 255, 255, 0.1)",
-                        }}
-                        onClick={() => setSelectedMember(member.id)}
-                      >
-                        <div
-                          style={{
-                            height: "200px",
-                            backgroundImage: `url(${member.image})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                          }}
-                        />
-                        <div style={{ padding: "15px" }}>
-                          <h4 style={{ marginBottom: "5px" }}>{member.name}</h4>
-                          <p
-                            style={{
-                              color: "rgba(255, 255, 255, 0.7)",
-                              fontSize: "0.9rem",
-                            }}
-                          >
-                            {member.instrument}
-                          </p>
-                          {member.isGroupPhoto && (
-                            <span
-                              style={{
-                                display: "inline-block",
-                                fontSize: "0.7rem",
-                                padding: "2px 5px",
-                                background: "rgba(255, 255, 255, 0.2)",
-                                borderRadius: "3px",
-                                marginTop: "5px",
-                              }}
-                            >
-                              Group
-                            </span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Band Member Details - appears after slide selection - only on client */}
+        {isBrowser && stage === "members" && selectedMember && (
+          <BandMemberContent
+            selectedMember={selectedMember}
+            bandMembers={bandMembers}
+            handleBackClick={handleBackClick}
+            setSelectedMember={setSelectedMember}
+          />
+        )}
 
         <style jsx global>{`
           .interactive-title {
@@ -680,6 +564,21 @@ export default function BandPage() {
           .member-card.selected {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+          }
+
+          .band-member-container {
+            isolation: isolate;
+          }
+
+          .band-member-container::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: -1;
           }
 
           @media (max-width: 768px) {
@@ -718,6 +617,20 @@ export default function BandPage() {
 
             .band-member-image {
               height: 300px !important;
+            }
+
+            .band-member-container {
+              margin: 0;
+              padding-bottom: 60px;
+            }
+
+            .band-member-header {
+              padding: 15px;
+            }
+
+            .back-button {
+              font-size: 14px;
+              padding: 6px 12px;
             }
           }
         `}</style>

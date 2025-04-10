@@ -8,7 +8,30 @@ import {
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { albums, eps } from "../../data/lyrics";
-import DiscographyItem from "../../components/DiscographyItem";
+import dynamic from "next/dynamic";
+
+// Dynamically import DiscographyItem with loading state
+const DiscographyItem = dynamic(
+  () => import("../../components/DiscographyItem"),
+  {
+    loading: () => (
+      <div
+        style={{
+          background: "rgba(255, 255, 255, 0.1)",
+          borderRadius: "8px",
+          padding: "20px",
+          minHeight: "200px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        Loading...
+      </div>
+    ),
+    ssr: false, // Disable server-side rendering for this component
+  }
+);
 
 // Music note positions for the floating animation
 const musicNotes = [
