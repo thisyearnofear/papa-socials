@@ -14,6 +14,10 @@ const nextConfig = {
         hostname: "**",
       },
     ],
+    path: "/_next/image",
+    loader: "default",
+    disableStaticImages: false,
+    domains: [],
   },
   compress: true,
 };
