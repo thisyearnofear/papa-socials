@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npm run optimize-images && next build",
+    "prebuild": "npm run optimize-images",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "optimize-images": "node scripts/optimize-images.js"
@@ -31,7 +32,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "glob": "^10.4.5",
-    "sharp": "^0.33.5",
+    "rimraf": "^3.0.2",
+    "sharp": "^0.32.1",
     "typescript": "^5"
   }
 }

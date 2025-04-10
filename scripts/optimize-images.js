@@ -1,84 +1,110 @@
-const fs = require('fs');
-const path = require('path');
 const sharp = require('sharp');
-const glob = require('glob');
+const fs = require('fs').promises;
+const path = require('path');
+const rimraf = require('rimraf'); // Add this to your dependencies if not present
 
-// Configuration
-const config = {
-  inputDir: 'public',
-  outputDir: 'public/optimized',
-  quality: 80,
-  maxWidth: 1920,
-  formats: ['webp', 'avif'],
-};
-
-// Create output directory if it doesn't exist
-if (!fs.existsSync(config.outputDir)) {
-  fs.mkdirSync(config.outputDir, { recursive: true });
+// Function to clear directory
+function clearDirectory(directory) {
+  return new Promise((resolve, reject) => {
+    rimraf(directory, (error) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
 
-// Find all images in the input directory
-const imageFiles = glob.sync(`${config.inputDir}/**/*.{jpg,jpeg,png,gif}`);
+const QUALITY = {
+  jpg: 80,
+  webp: 75,
+  avif: 60
+};
 
-console.log(`Found ${imageFiles.length} images to optimize`);
+const SIZES = [640, 750, 828, 1080, 1200, 1920];
+const OPTIMIZED_DIR = path.join(process.cwd(), 'public', 'optimized');
 
-// Process each image
-(async () => {
-  for (const file of imageFiles) {
-    const filename = path.basename(file);
-    const relativePath = path.relative(config.inputDir, path.dirname(file));
-    const outputPath = path.join(config.outputDir, relativePath);
+async function optimizeImage(inputPath, outputDir) {
+  const filename = path.basename(inputPath, path.extname(inputPath));
+  const image = sharp(inputPath);
+  const metadata = await image.metadata();
+
+  // Create output directory if it doesn't exist
+  await fs.mkdir(outputDir, { recursive: true });
+
+  // Generate responsive sizes
+  for (const width of SIZES.filter(w => w <= metadata.width)) {
+    const resized = image.resize(width, null, {
+      withoutEnlargement: true,
+      fit: 'inside'
+    });
+
+    // Generate AVIF
+    await resized
+      .avif({ quality: QUALITY.avif })
+      .toFile(path.join(outputDir, `${filename}-${width}.avif`));
+
+    // Generate WebP
+    await resized
+      .webp({ quality: QUALITY.webp })
+      .toFile(path.join(outputDir, `${filename}-${width}.webp`));
+
+    // Generate optimized JPEG
+    await resized
+      .jpeg({ quality: QUALITY.jpg, mozjpeg: true })
+      .toFile(path.join(outputDir, `${filename}-${width}.jpg`));
+  }
+
+  // Generate original size in all formats
+  await image
+    .avif({ quality: QUALITY.avif })
+    .toFile(path.join(outputDir, `${filename}.avif`));
+  
+  await image
+    .webp({ quality: QUALITY.webp })
+    .toFile(path.join(outputDir, `${filename}.webp`));
+  
+  await image
+    .jpeg({ quality: QUALITY.jpg, mozjpeg: true })
+    .toFile(path.join(outputDir, `${filename}.jpg`));
+
+  console.log(`Optimized: ${filename}`);
+}
+
+async function processDirectory(dir) {
+  const files = await fs.readdir(dir);
+  
+  for (const file of files) {
+    const inputPath = path.join(dir, file);
+    const stat = await fs.stat(inputPath);
     
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputPath)) {
-      fs.mkdirSync(outputPath, { recursive: true });
-    }
-    
-    try {
-      // Load the image
-      const image = sharp(file);
-      
-      // Get image metadata
-      const metadata = await image.metadata();
-      
-      // Resize if larger than maxWidth
-      const width = metadata.width > config.maxWidth ? config.maxWidth : null;
-      
-      // Process image for each format
-      for (const format of config.formats) {
-        const outputFile = path.join(outputPath, `${path.parse(filename).name}.${format}`);
-        
-        let processedImage = image;
-        if (width) {
-          processedImage = processedImage.resize(width);
-        }
-        
-        // Convert to the target format
-        if (format === 'webp') {
-          await processedImage.webp({ quality: config.quality }).toFile(outputFile);
-        } else if (format === 'avif') {
-          await processedImage.avif({ quality: config.quality }).toFile(outputFile);
-        }
-        
-        console.log(`Optimized: ${outputFile}`);
+    if (stat.isDirectory()) {
+      // Skip the optimized directory to prevent recursive optimization
+      if (inputPath.includes('optimized')) {
+        continue;
       }
-      
-      // Also save as original format but optimized
-      const outputFile = path.join(outputPath, filename);
-      let processedImage = image;
-      if (width) {
-        processedImage = processedImage.resize(width);
-      }
-      
-      await processedImage
-        .jpeg({ quality: config.quality, mozjpeg: true })
-        .toFile(outputFile);
-      
-      console.log(`Optimized: ${outputFile}`);
-    } catch (error) {
-      console.error(`Error processing ${file}:`, error);
+      await processDirectory(inputPath);
+    } else if (/\.(jpg|jpeg|png)$/i.test(file)) {
+      const relativePath = path.relative(path.join(process.cwd(), 'public'), dir);
+      const outputDir = path.join(OPTIMIZED_DIR, relativePath);
+      await optimizeImage(inputPath, outputDir);
     }
   }
-  
-  console.log('Image optimization complete!');
+}
+
+// Main execution
+(async () => {
+  try {
+    console.log('Clearing existing optimized images...');
+    await clearDirectory(OPTIMIZED_DIR);
+    console.log('Optimized directory cleared');
+
+    console.log('Starting image optimization...');
+    await processDirectory(path.join(process.cwd(), 'public'));
+    console.log('Image optimization complete!');
+  } catch (error) {
+    console.error('Error during image optimization:', error);
+    process.exit(1);
+  }
 })();
