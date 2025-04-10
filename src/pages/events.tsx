@@ -10,12 +10,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { OptimizedImage } from "../../components/OptimizedImage";
 
-// Calendar icons for floating animation
+// Simplified calendar icons for floating animation
 const calendarIcons = [
-  { icon: "🎸", x: -20, y: -20, rotation: -15 },
-  { icon: "🎹", x: 20, y: -30, rotation: 15 },
-  { icon: "🎺", x: -15, y: -40, rotation: -20 },
-  { icon: "🎷", x: 25, y: -25, rotation: 25 },
+  { icon: "🎸", delay: 0 },
+  { icon: "🎹", delay: 0.1 },
+  { icon: "🎺", delay: 0.2 },
+  { icon: "🎷", delay: 0.3 },
 ];
 
 export default function EventsPage() {
@@ -67,7 +67,23 @@ export default function EventsPage() {
     },
   });
 
-  // Enhanced title click handler with haptic feedback
+  // Simplified floating animation
+  useEffect(() => {
+    if (stage === "grid") {
+      iconsControls.start((i) => ({
+        y: [-5, 5],
+        transition: {
+          duration: 1.5,
+          ease: "easeInOut",
+          delay: calendarIcons[i].delay,
+          repeat: Infinity,
+          repeatType: "reverse",
+        },
+      }));
+    }
+  }, [stage, iconsControls]);
+
+  // Enhanced title click handler with simplified animation
   const handleTitleClick = useCallback(() => {
     if (stage === "grid") {
       if (navigator.vibrate) {
@@ -75,34 +91,13 @@ export default function EventsPage() {
       }
 
       titleControls.start({
-        scale: [1, 1.1, 1],
-        transition: { duration: 0.3 },
+        scale: 1.05,
+        transition: { duration: 0.2 },
       });
 
       handleSlideClick(0);
     }
   }, [stage, handleSlideClick, titleControls]);
-
-  // Floating animation for calendar icons
-  useEffect(() => {
-    if (stage === "grid") {
-      const floatingAnimation = async () => {
-        await iconsControls.start((i) => ({
-          y: [0, -20, 0],
-          x: [0, calendarIcons[i].x, 0],
-          rotate: [0, calendarIcons[i].rotation, 0],
-          transition: {
-            duration: 2,
-            ease: "easeInOut",
-            delay: i * 0.2,
-            repeat: Infinity,
-            repeatType: "reverse",
-          },
-        }));
-      };
-      floatingAnimation();
-    }
-  }, [stage, iconsControls]);
 
   // Auto-hide hint after delay
   useEffect(() => {
@@ -261,7 +256,6 @@ export default function EventsPage() {
           >
             {stage === "grid" && (
               <>
-                {/* Floating calendar icons */}
                 {calendarIcons.map((icon, i) => (
                   <motion.div
                     key={i}
@@ -272,19 +266,21 @@ export default function EventsPage() {
                       fontSize: "20px",
                       opacity: 0.8,
                       pointerEvents: "none",
+                      willChange: "transform",
                     }}
                   >
                     {icon.icon}
                   </motion.div>
                 ))}
 
-                {/* Interactive hint */}
+                {/* Interactive hint with simplified animation */}
                 <AnimatePresence>
                   {showHint && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
                       style={{
                         position: "absolute",
                         top: "-30px",
@@ -431,28 +427,15 @@ export default function EventsPage() {
           {stage === "events" && (
             <motion.div
               className="events-container"
-              initial={{
-                opacity: 0,
-                y: 50,
-                scale: 0.95,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                transition: {
-                  duration: 0.9,
-                  ease: "easeInOut",
-                },
-              }}
-              exit={{
-                opacity: 0,
-                y: -50,
-                scale: 0.95,
-                transition: {
-                  duration: 0.6,
-                  ease: "easeInOut",
-                },
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                willChange: "opacity",
+                maxWidth: "1200px",
+                margin: "0 auto",
+                padding: "20px",
               }}
             >
               <div className="events-header">
@@ -475,14 +458,7 @@ export default function EventsPage() {
               </div>
 
               <div className="events-content">
-                <div
-                  className="event-list"
-                  style={{
-                    maxWidth: "1200px",
-                    margin: "0 auto",
-                    padding: "20px",
-                  }}
-                >
+                <div className="event-list">
                   {/* Event 1 - Africa Rising Music Conference */}
                   <div
                     className="event-item"

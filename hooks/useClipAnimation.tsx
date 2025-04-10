@@ -151,11 +151,11 @@ export function useClipAnimation(
       selectedOpacity: 0.8,
       selectedScale: 1.15,
       selectedY: -40,
-      contentSelector: ".discography-container",
+      contentSelector: ".content-container", // Generic default
     },
     // Content to grid transition options
     contentToGrid: {
-      contentSelector: ".discography-container",
+      contentSelector: ".content-container", // Generic default
     },
   };
 
@@ -164,6 +164,18 @@ export function useClipAnimation(
     ...defaultOptions,
     ...defaultAnimationOptions,
   };
+
+  // Debug the current contentSelector to help find issues
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      console.debug(
+        "Current content selector:",
+        animationOptions.gridToContent.contentSelector,
+        "for page with stages:",
+        stages
+      );
+    }
+  }, [animationOptions.gridToContent.contentSelector, stages]);
 
   // Refs for animation elements
   const clipRef = useRef<HTMLDivElement>(null);
@@ -484,107 +496,35 @@ export function useClipAnimation(
       const coverButton =
         coverTitle?.parentNode?.querySelector(".cover__button");
 
-      // Ensure content container is ready to be visible
+      // Check for content container but log warning if missing (don't create one)
       const contentContainer = document.querySelector(
         contentSelector as string
-      ) as HTMLElement;
-      if (contentContainer) {
-        // Make sure it's visible but transparent initially
-        if (contentContainer instanceof HTMLElement) {
-          (window as any).gsap.set(contentContainer, {
-            visibility: "visible",
-            opacity: 0,
-            display: "block", // Ensure it's displayed
-            zIndex: 1000, // Ensure it's above other elements
-          });
-        }
-        console.log(
-          "Content container found and set to visible:",
-          contentSelector
+      ) as HTMLElement | null;
+
+      if (!contentContainer) {
+        console.warn(
+          `Content container not found: ${contentSelector}. Check that this selector exists in your page.`
         );
-
-        // Add a debug class to help identify it
-        contentContainer.classList.add("debug-visible");
-      } else {
-        console.warn("Content container not found:", contentSelector);
-
-        // Try to create the container if it doesn't exist
-        const newContainer = document.createElement("div") as HTMLDivElement;
-        newContainer.className = "discography-container";
-        newContainer.innerHTML =
-          '<div class="discography-header"><h2>DISCOGRAPHY</h2><button class="discography-back">← Back to music</button></div>';
-        document.body.appendChild(newContainer);
-        console.log("Created new discography container");
+      } else if (process.env.NODE_ENV !== "production") {
+        console.debug(`Content container found: ${contentSelector}`);
       }
 
       // First, blur and scale all slides with enhanced effect
       const tl = (window as any).gsap.timeline({
         defaults: { duration: 0.7, ease: "power3.out" },
         onComplete: () => {
-          // Make content visible immediately
-          if (contentContainer) {
-            // First ensure the container is visible and positioned correctly
-            (window as any).gsap.set(contentContainer, {
-              display: "block",
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 1000,
-              backgroundColor: "rgba(0, 0, 0, 0.95)",
-            });
+          setIsAnimating(false);
+          setSelectedSlide(index);
+          setStage(stages[2]); // Move to content stage
 
-            // Then animate it in
-            (window as any).gsap.to(contentContainer, {
-              opacity: 1,
-              visibility: "visible",
-              duration: 0.5,
-              ease: "power2.out",
-              onStart: () => {
-                console.log("Starting animation to show discography container");
-                // Add a clear visual indicator
-                document.body.classList.add("discography-active");
-              },
-              onComplete: () => {
-                setIsAnimating(false);
-                setSelectedSlide(index);
-                setStage(stages[2]); // Move to content stage
+          // Call custom complete callback if provided
+          if (typeof onCompleteCallback === "function") {
+            onCompleteCallback(index);
+          }
 
-                // Call custom complete callback if provided
-                if (typeof onCompleteCallback === "function") {
-                  onCompleteCallback(index);
-                }
-
-                // Call stage change callback if provided
-                if (typeof callbacks.onStageChange === "function") {
-                  callbacks.onStageChange(stages[2], index);
-                }
-
-                console.log("Animation to discography stage complete");
-
-                // Force a reflow to ensure the container is visible
-                if (contentContainer instanceof HTMLElement) {
-                  contentContainer.style.display = "block";
-                  contentContainer.style.opacity = "1";
-                  contentContainer.style.visibility = "visible";
-                }
-              },
-            });
-          } else {
-            setIsAnimating(false);
-            setSelectedSlide(index);
-            setStage(stages[2]); // Move to content stage
-
-            // Call custom complete callback if provided
-            if (typeof onCompleteCallback === "function") {
-              onCompleteCallback(index);
-            }
-
-            // Call stage change callback if provided
-            if (typeof callbacks.onStageChange === "function") {
-              callbacks.onStageChange(stages[2], index);
-            }
+          // Call stage change callback if provided
+          if (typeof callbacks.onStageChange === "function") {
+            callbacks.onStageChange(stages[2], index);
           }
         },
       });
@@ -673,9 +613,6 @@ export function useClipAnimation(
         );
         const coverButton =
           coverTitle?.parentNode?.querySelector(".cover__button");
-        const contentContainer = document.querySelector(
-          contentSelector as string
-        );
 
         const tl = (window as any).gsap.timeline({
           onComplete: () => {
@@ -694,36 +631,6 @@ export function useClipAnimation(
           },
         });
 
-        // First hide the content container
-        if (contentContainer) {
-          tl.to(contentContainer, {
-            opacity: 0,
-            visibility: "hidden",
-            duration: 0.3,
-            ease: "power2.out",
-            onStart: () => {
-              console.log("Starting to hide content container");
-              // Remove the visual indicator
-              document.body.classList.remove("discography-active");
-              document.body.classList.remove("discography-view");
-            },
-            onComplete: () => {
-              console.log("Content container hidden");
-              // Ensure it's fully hidden
-              if (contentContainer instanceof HTMLElement) {
-                contentContainer.style.display = "none";
-                contentContainer.classList.remove("debug-visible");
-
-                // Safely hide the container instead of removing it
-                // This avoids the removeChild error
-                contentContainer.style.visibility = "hidden";
-                contentContainer.style.opacity = "0";
-                contentContainer.style.pointerEvents = "none";
-              }
-            },
-          });
-        }
-
         // Show the cover title, description, and button
         tl.to(
           [coverTitle, coverDescription, coverButton],
@@ -734,9 +641,8 @@ export function useClipAnimation(
             ease: "power2.out",
             stagger: 0.05,
           },
-          contentContainer ? "-=0.1" : "0"
+          "0"
         )
-
           // Then reset slides
           .to(
             slidesRef.current?.querySelectorAll(".slide") || [],
@@ -766,6 +672,46 @@ export function useClipAnimation(
       animationOptions,
     ]
   );
+
+  // Ensure state changes are properly synchronized with animations
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM updates are synchronized with animation
+    if (typeof window !== "undefined") {
+      let frameId: number | null = null;
+
+      const syncAnimations = () => {
+        // Ensure any stage-related DOM manipulations are visible
+        if (stage === stages[2] && selectedSlide !== null) {
+          // Force content container styles for content stage
+          const contentSelector =
+            animationOptions.gridToContent.contentSelector;
+          if (contentSelector) {
+            const container = document.querySelector(contentSelector);
+            if (container instanceof HTMLElement) {
+              container.style.opacity = "1";
+              container.style.visibility = "visible";
+              container.style.display = "block";
+            }
+          }
+        }
+
+        frameId = null;
+      };
+
+      frameId = window.requestAnimationFrame(syncAnimations);
+
+      return () => {
+        if (frameId !== null) {
+          window.cancelAnimationFrame(frameId);
+        }
+      };
+    }
+  }, [
+    stage,
+    selectedSlide,
+    animationOptions.gridToContent.contentSelector,
+    stages,
+  ]);
 
   return {
     // Refs for animation elements
