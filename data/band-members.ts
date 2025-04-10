@@ -4,13 +4,14 @@ interface BandMember {
   instrument: string;
   image: string;
   isGroupPhoto?: boolean;
+  role?: string;
 }
 
 export const bandMembers: BandMember[] = [
   // Group photos interspersed throughout
   {
     id: 1,
-    name: "PAPA Live at Glastonbury",
+    name: "Hootenanny, Brixton",
     instrument: "Full Band",
     image: "/img/demo4/1.jpg",
     isGroupPhoto: true

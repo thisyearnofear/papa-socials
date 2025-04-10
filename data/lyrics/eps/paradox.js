@@ -3,7 +3,7 @@ export const epInfo = {
   title: "Paradox",
   type: "ep",
   releaseDate: "2023-07-01", // Update with actual release date
-  coverImage: "/img/demo1/1.jpg", // Update with actual path
+  coverImage: "/img/demo1/6.jpg", // Update with actual path
   description: "An EP exploring contradictions and harmonies in musical form.",
 };
 
