@@ -4,16 +4,26 @@ import {
   useClipAnimation,
   ClipAnimationReturn,
 } from "../../hooks/useClipAnimation";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { bandMembers } from "../../data/band-members";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+
+// Music instrument icons for floating animation
+const instrumentIcons = [
+  { icon: "🎸", x: -20, y: -20, rotation: -15 },
+  { icon: "🥁", x: 20, y: -30, rotation: 15 },
+  { icon: "🎹", x: -15, y: -40, rotation: -20 },
+  { icon: "🎺", x: 25, y: -25, rotation: 25 },
+];
 
 export default function BandPage() {
   const [selectedMember, setSelectedMember] = React.useState<number | null>(
     null
   );
-  const [isTitleClickable, setIsTitleClickable] = React.useState(false);
+  const [showHint, setShowHint] = React.useState(true);
   const [isCoverHidden, setIsCoverHidden] = React.useState(false);
+  const titleControls = useAnimation();
+  const iconsControls = useAnimation();
 
   // Use the refactored hook with custom options for band/discography page
   const {
@@ -33,10 +43,8 @@ export default function BandPage() {
 
         // Update state based on stage
         if (newStage === "grid") {
-          setIsTitleClickable(true);
           setIsCoverHidden(true);
         } else {
-          setIsTitleClickable(false);
           setIsCoverHidden(false);
         }
       },
@@ -55,18 +63,54 @@ export default function BandPage() {
     },
   });
 
-  // Updated handleTitleClick to use handleSlideClick instead of toggleEffect
-  const handleTitleClick = () => {
-    if (isTitleClickable && stage === "grid") {
-      // Use handleSlideClick with index 0 to trigger the transition to band members view
+  // Enhanced title click handler with haptic feedback
+  const handleTitleClick = useCallback(() => {
+    if (stage === "grid") {
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+
+      titleControls.start({
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.3 },
+      });
+
       handleSlideClick(0, {
         onCompleteCallback: () => {
-          // Set the first band member as selected when transitioning
           setSelectedMember(bandMembers[0]?.id || null);
         },
       });
     }
-  };
+  }, [stage, handleSlideClick, titleControls]);
+
+  // Floating animation for instrument icons
+  useEffect(() => {
+    if (stage === "grid") {
+      const floatingAnimation = async () => {
+        await iconsControls.start((i) => ({
+          y: [0, -20, 0],
+          x: [0, instrumentIcons[i].x, 0],
+          rotate: [0, instrumentIcons[i].rotation, 0],
+          transition: {
+            duration: 2,
+            ease: "easeInOut",
+            delay: i * 0.2,
+            repeat: Infinity,
+            repeatType: "reverse",
+          },
+        }));
+      };
+      floatingAnimation();
+    }
+  }, [stage, iconsControls]);
+
+  // Auto-hide hint after delay
+  useEffect(() => {
+    if (showHint && stage === "grid") {
+      const timer = setTimeout(() => setShowHint(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showHint, stage]);
 
   useEffect(() => {
     const coverButton = document.querySelector(".cover__button");
@@ -146,28 +190,205 @@ export default function BandPage() {
         </div>
 
         <div className="cover">
-          <h2
-            className={`cover__title ${isTitleClickable ? "pulse-title" : ""}`}
-            onClick={handleTitleClick}
-            ref={titleRef}
-            data-splitting
+          <div
+            className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
+            style={{
+              position: "relative",
+              padding: "20px",
+              minHeight: "120px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            The Jim Jams
-          </h2>
+            {stage === "grid" && (
+              <>
+                {/* Floating instrument icons */}
+                {instrumentIcons.map((icon, i) => (
+                  <motion.div
+                    key={i}
+                    custom={i}
+                    animate={iconsControls}
+                    style={{
+                      position: "absolute",
+                      fontSize: "20px",
+                      opacity: 0.8,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {icon.icon}
+                  </motion.div>
+                ))}
+
+                {/* Interactive hint */}
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      style={{
+                        position: "absolute",
+                        top: "-30px",
+                        color: "white",
+                        fontSize: "14px",
+                        textAlign: "center",
+                        width: "100%",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      meet us
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+
+            <motion.h2
+              className={`cover__title ${
+                stage === "grid" ? "interactive-title" : ""
+              }`}
+              onClick={handleTitleClick}
+              ref={titleRef}
+              data-splitting
+              animate={titleControls}
+              whileHover={
+                stage === "grid"
+                  ? {
+                      scale: 1.05,
+                      transition: { duration: 0.2 },
+                    }
+                  : {}
+              }
+              style={{
+                cursor: stage === "grid" ? "pointer" : "default",
+                padding: "20px",
+                position: "relative",
+                textAlign: "center",
+                fontSize:
+                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                touchAction: "manipulation",
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+            >
+              The Jim Jams
+            </motion.h2>
+          </div>
           <p className="cover__description">
             A dash of drums here, a pinch of horn there, tablespoon of boiling
             Memphis guitar sprinkled everywhere.
           </p>
           {!isCoverHidden && (
-            <button
+            <motion.button
               className="cover__button unbutton"
               onClick={(e) => {
                 e.preventDefault();
                 toggleEffect();
               }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: 0.8,
+                  ease: "easeOut",
+                },
+              }}
+              whileHover={{
+                scale: 1.05,
+                y: -5,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{
+                scale: 0.95,
+                y: 0,
+              }}
+              style={{
+                position: "relative",
+                padding: "16px 32px",
+                fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                fontWeight: "600",
+                letterSpacing: "0.05em",
+                background: "rgba(255, 255, 255, 0.1)",
+                border: "2px solid rgba(255, 255, 255, 0.8)",
+                borderRadius: "8px",
+                color: "white",
+                cursor: "pointer",
+                overflow: "hidden",
+                textTransform: "uppercase",
+                boxShadow:
+                  "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                margin: "0",
+                minWidth: "180px",
+                display: "inline-flex",
+                justifyContent: "center",
+                alignItems: "center",
+                WebkitAppearance: "none",
+                appearance: "none",
+                transform: "translateZ(0)",
+                willChange: "transform, opacity",
+                isolation: "isolate",
+              }}
             >
-              Meet The Band
-            </button>
+              <motion.div
+                className="button-highlight"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: [0.5, 1, 0.5],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                style={{
+                  position: "absolute",
+                  top: "-100%",
+                  left: "-100%",
+                  right: "-100%",
+                  bottom: "-100%",
+                  background:
+                    "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%)",
+                  pointerEvents: "none",
+                  zIndex: 0,
+                }}
+              />
+              <motion.span
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                  fontWeight: "600",
+                  letterSpacing: "0.05em",
+                  color: "white",
+                }}
+              >
+                <span>Meet</span>
+                <motion.span
+                  animate={{
+                    x: [0, 5, 0],
+                    transition: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }}
+                  style={{
+                    fontSize: "1.2em",
+                    lineHeight: 1,
+                  }}
+                >
+                  ✌️
+                </motion.span>
+              </motion.span>
+            </motion.button>
           )}
         </div>
 
@@ -277,6 +498,61 @@ export default function BandPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <style jsx global>{`
+          .interactive-title {
+            position: relative;
+            z-index: 100;
+            transition: all 0.3s ease;
+          }
+
+          .interactive-title::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -10px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: white;
+            transition: width 0.3s ease;
+          }
+
+          .interactive-title:hover::after {
+            width: 80%;
+          }
+
+          @media (max-width: 768px) {
+            .interactive {
+              padding: 30px;
+            }
+
+            .interactive-title {
+              padding: 15px 30px !important;
+            }
+
+            .interactive::before {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.1) 0%,
+                transparent 70%
+              );
+              pointer-events: none;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+            }
+
+            .interactive:active::before {
+              opacity: 1;
+            }
+          }
+        `}</style>
       </Layout>
     </>
   );

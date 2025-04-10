@@ -5,13 +5,24 @@ import {
   useClipAnimation,
   ClipAnimationReturn,
 } from "../../hooks/useClipAnimation";
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { albums, eps } from "../../data/lyrics";
 import DiscographyItem from "../../components/DiscographyItem";
 
+// Music note positions for the floating animation
+const musicNotes = [
+  { x: -20, y: -20, rotation: -15 },
+  { x: 20, y: -30, rotation: 15 },
+  { x: -15, y: -40, rotation: -20 },
+  { x: 25, y: -25, rotation: 25 },
+];
+
 export default function MusicPage() {
   const [activeRelease, setActiveRelease] = useState<string | null>(null);
+  const [showHint, setShowHint] = useState(true);
+  const titleControls = useAnimation();
+  const notesControls = useAnimation();
 
   const {
     clipRef,
@@ -63,23 +74,53 @@ export default function MusicPage() {
     setActiveRelease(releaseId === activeRelease ? null : releaseId);
   };
 
-  // Track if title is clickable
-  const [isTitleClickable, setIsTitleClickable] = useState(false);
-
-  // Handle title click in grid stage
-  const handleTitleClick = () => {
+  // Enhanced title click handler with haptic feedback
+  const handleTitleClick = useCallback(() => {
     if (stage === "grid") {
-      console.log("Title clicked in grid stage");
-      // Use the first slide (index 0) for transition
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+
+      titleControls.start({
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.3 },
+      });
+
       handleSlideClick(0);
     }
-  };
+  }, [stage, handleSlideClick, titleControls]);
+
+  // Floating animation for music notes
+  useEffect(() => {
+    if (stage === "grid") {
+      const floatingAnimation = async () => {
+        await notesControls.start((i) => ({
+          y: [0, -20, 0],
+          x: [0, musicNotes[i].x, 0],
+          rotate: [0, musicNotes[i].rotation, 0],
+          transition: {
+            duration: 2,
+            ease: "easeInOut",
+            delay: i * 0.2,
+            repeat: Infinity,
+            repeatType: "reverse",
+          },
+        }));
+      };
+      floatingAnimation();
+    }
+  }, [stage, notesControls]);
+
+  // Auto-hide hint after delay
+  useEffect(() => {
+    if (showHint && stage === "grid") {
+      const timer = setTimeout(() => setShowHint(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showHint, stage]);
 
   useEffect(() => {
     console.log("Current stage:", stage);
-
-    // Make title clickable in grid stage
-    setIsTitleClickable(stage === "grid");
 
     // Simplified effect - only handle basic stage changes
     if (stage === "grid") {
@@ -207,18 +248,84 @@ export default function MusicPage() {
         </div>
 
         <div className="cover">
-          <div className="title-wrapper">
-            <h2
+          <div
+            className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
+            style={{
+              position: "relative",
+              padding: "20px",
+              minHeight: "120px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {stage === "grid" && (
+              <>
+                {/* Floating music notes */}
+                {musicNotes.map((_, i) => (
+                  <motion.div
+                    key={i}
+                    custom={i}
+                    animate={notesControls}
+                    style={{
+                      position: "absolute",
+                      fontSize: "24px",
+                      color: "white",
+                      opacity: 0.8,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    ♪
+                  </motion.div>
+                ))}
+
+                {/* Interactive hint */}
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      style={{
+                        position: "absolute",
+                        top: "-30px",
+                        color: "white",
+                        fontSize: "14px",
+                        textAlign: "center",
+                        width: "100%",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      Tap me
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+
+            <motion.h2
               className={`cover__title ${
-                isTitleClickable ? "pulse-title" : ""
+                stage === "grid" ? "interactive-title" : ""
               }`}
               onClick={handleTitleClick}
               ref={titleRef}
               data-splitting
-              style={{ cursor: isTitleClickable ? "pointer" : "default" }}
+              animate={titleControls}
+              style={{
+                cursor: stage === "grid" ? "pointer" : "default",
+                padding: "20px",
+                position: "relative",
+                textAlign: "center",
+                fontSize:
+                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                touchAction: "manipulation",
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
             >
               Music
-            </h2>
+            </motion.h2>
           </div>
           <p className="cover__description">
             beaming with afro soul, latin rhythms, europa animus, funk & blues.
@@ -226,51 +333,7 @@ export default function MusicPage() {
           <motion.button
             className="cover__button unbutton"
             onClick={(e) => {
-              // Create ripple effect
-              const button = e.currentTarget;
-              const ripple = document.createElement("span");
-              const rect = button.getBoundingClientRect();
-              const size = Math.max(rect.width, rect.height);
-              const x = e.clientX - rect.left - size / 2;
-              const y = e.clientY - rect.top - size / 2;
-
-              ripple.className = "ripple";
-              ripple.style.width = ripple.style.height = `${size}px`;
-              ripple.style.left = `${x}px`;
-              ripple.style.top = `${y}px`;
-
-              button.appendChild(ripple);
-
-              // Stop the flashing animation when clicked
-              button.style.animation = "none";
-
-              // Add a final flash effect
-              button.animate(
-                [
-                  {
-                    filter: "brightness(1.5)",
-                    transform: "translateY(-5px) scale(1.12)",
-                  },
-                  {
-                    filter: "brightness(1.2)",
-                    transform: "translateY(-5px) scale(1.08)",
-                  },
-                ],
-                {
-                  duration: 300,
-                  easing: "ease-out",
-                }
-              );
-
-              // Remove ripple after animation completes - safely
-              setTimeout(() => {
-                // Check if ripple is still a child of button before removing
-                if (ripple && ripple.parentNode === button) {
-                  button.removeChild(ripple);
-                }
-              }, 600);
-
-              // Call the original toggle effect
+              e.preventDefault();
               toggleEffect();
             }}
             initial={{ opacity: 0, y: 20 }}
@@ -278,18 +341,82 @@ export default function MusicPage() {
               opacity: 1,
               y: 0,
               transition: {
-                duration: 1.2,
+                duration: 0.8,
                 ease: "easeOut",
               },
             }}
+            whileHover={{
+              scale: 1.05,
+              y: -5,
+              transition: { duration: 0.2 },
+            }}
             whileTap={{
               scale: 0.95,
-              y: 2,
-              boxShadow:
-                "0 0 0 3px rgba(245, 212, 145, 0.5), 0 5px 10px rgba(0, 0, 0, 0.3)",
+              y: 0,
+            }}
+            style={{
+              position: "relative",
+              padding: "16px 32px",
+              fontSize: "clamp(1rem, 2vw, 1.25rem)",
+              fontWeight: "600",
+              letterSpacing: "0.05em",
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "2px solid rgba(255, 255, 255, 0.8)",
+              borderRadius: "8px",
+              color: "white",
+              cursor: "pointer",
+              overflow: "hidden",
+              textTransform: "uppercase",
+              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
             }}
           >
-            <span style={{ position: "relative", zIndex: 2 }}>EXPLORE</span>
+            <motion.div
+              className="button-highlight"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0.5, 1, 0.5],
+                transition: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              }}
+              style={{
+                position: "absolute",
+                top: "-100%",
+                left: "-100%",
+                right: "-100%",
+                bottom: "-100%",
+                background:
+                  "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }}
+            />
+            <motion.span
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span>Explore</span>
+              <motion.span
+                animate={{
+                  x: [0, 5, 0],
+                  transition: {
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+              >
+                👀
+              </motion.span>
+            </motion.span>
           </motion.button>
         </div>
 
@@ -302,12 +429,12 @@ export default function MusicPage() {
             <motion.div
               className="discography-view-container"
               initial={{ opacity: 0 }}
-              animate={{ 
+              animate={{
                 opacity: 1,
                 transition: {
                   duration: 0.5,
-                  ease: "easeOut"
-                }
+                  ease: "easeOut",
+                },
               }}
               exit={{
                 opacity: 0,
@@ -326,7 +453,7 @@ export default function MusicPage() {
                 pointerEvents: "auto",
               }}
             >
-              <div 
+              <div
                 className="discography-header"
                 style={{
                   display: "flex",
@@ -361,7 +488,7 @@ export default function MusicPage() {
                 </button>
               </div>
 
-              <div 
+              <div
                 className="discography-content"
                 style={{
                   overflowY: "auto",
@@ -373,21 +500,26 @@ export default function MusicPage() {
                   WebkitOverflowScrolling: "touch",
                 }}
               >
-                <div 
+                <div
                   className="discography-category"
                   style={{
-                    marginBottom: "40px"
+                    marginBottom: "40px",
                   }}
                 >
-                  <h3 style={{ 
-                    color: "#fff",
-                    marginBottom: "20px"
-                  }}>Albums</h3>
-                  <div 
+                  <h3
+                    style={{
+                      color: "#fff",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    Albums
+                  </h3>
+                  <div
                     className="discography-grid"
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(250px, 1fr))",
                       gap: "20px",
                       padding: "10px",
                       pointerEvents: "auto",
@@ -404,23 +536,28 @@ export default function MusicPage() {
                   </div>
                 </div>
 
-                <div 
+                <div
                   className="discography-category"
                   style={{
-                    marginBottom: "40px"
+                    marginBottom: "40px",
                   }}
                 >
-                  <h3 style={{ 
-                    color: "#fff",
-                    marginBottom: "20px"
-                  }}>EPs</h3>
-                  <div 
+                  <h3
+                    style={{
+                      color: "#fff",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    EPs
+                  </h3>
+                  <div
                     className="discography-grid"
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(250px, 1fr))",
                       gap: "20px",
-                      padding: "10px"
+                      padding: "10px",
                     }}
                   >
                     {eps.map((ep) => (
@@ -438,6 +575,61 @@ export default function MusicPage() {
           )}
         </AnimatePresence>
       </Layout>
+
+      <style jsx global>{`
+        .interactive-title {
+          position: relative;
+          z-index: 100;
+          transition: all 0.3s ease;
+        }
+
+        .interactive-title::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          bottom: -10px;
+          transform: translateX(-50%);
+          width: 0;
+          height: 2px;
+          background: white;
+          transition: width 0.3s ease;
+        }
+
+        .interactive-title:hover::after {
+          width: 80%;
+        }
+
+        @media (max-width: 768px) {
+          .interactive {
+            padding: 30px;
+          }
+
+          .interactive-title {
+            padding: 15px 30px !important;
+          }
+
+          .interactive::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+              circle at center,
+              rgba(255, 255, 255, 0.1) 0%,
+              transparent 70%
+            );
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .interactive:active::before {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   );
 }
