@@ -205,13 +205,13 @@ export default function EventsPage() {
           <div className="slide">
             <div
               className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/2.jpg)" }}
+              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
             ></div>
           </div>
           <div className="slide">
             <div
               className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/3.jpg)" }}
+              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
             ></div>
           </div>
           <div className="slide slide--current">
@@ -223,13 +223,13 @@ export default function EventsPage() {
           <div className="slide">
             <div
               className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/4.jpg)" }}
+              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
             ></div>
           </div>
           <div className="slide">
             <div
               className="slide__img"
-              style={{ backgroundImage: "url(/img/demo3/5.jpg)" }}
+              style={{ backgroundImage: "url(/img/demo3/1.jpg)" }}
             ></div>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function EventsPage() {
                         pointerEvents: "none",
                       }}
                     >
-                      join us
+                      lets jam
                     </motion.div>
                   )}
                 </AnimatePresence>

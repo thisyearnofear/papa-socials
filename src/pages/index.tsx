@@ -180,10 +180,10 @@ export default function MusicPage() {
 
       <Layout>
         <div className="slides" ref={slidesRef}>
-          {[2, 3, 1, 4, 5].map((num, index) => (
+          {[1, 1, 1, 1, 1].map((num, index) => (
             <motion.div
-              key={num}
-              className={`slide ${num === 1 ? "slide--current" : ""}`}
+              key={index}
+              className={`slide ${index === 2 ? "slide--current" : ""}`}
               onClick={() => {
                 if (stage === "grid") {
                   handleSlideClick(index, {
@@ -212,8 +212,8 @@ export default function MusicPage() {
                 style={{ position: "relative", width: "100%", height: "100%" }}
               >
                 <Image
-                  src={`/img/demo1/${num}.jpg`}
-                  alt={`Music slide ${num}`}
+                  src="/img/demo1/1.jpg"
+                  alt={`Music slide ${index + 1}`}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   style={{ objectFit: "cover" }}

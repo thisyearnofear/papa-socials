@@ -1,4 +1,4 @@
-import { RefObject } from 'react';
+import { RefObject } from "react";
 
 // Animation options for different transitions
 export interface AnimationOptions {
@@ -54,7 +54,9 @@ export interface ClipAnimationOptions {
 
 // Empty object is a valid option
 export function useClipAnimation(): ClipAnimationReturn;
-export function useClipAnimation(options: ClipAnimationOptions): ClipAnimationReturn;
+export function useClipAnimation(
+  options: ClipAnimationOptions
+): ClipAnimationReturn;
 
 // Custom options for animation methods
 export interface CustomAnimationOptions {
@@ -84,22 +86,23 @@ export interface ClipAnimationReturn {
   clipImageRef: RefObject<HTMLDivElement>;
   slidesRef: RefObject<HTMLDivElement>;
   titleRef: RefObject<HTMLHeadingElement>;
-  
+
   // Animation control functions
   toggleEffect: (customOptions?: CustomAnimationOptions) => void;
   showSlider: (customOptions?: CustomAnimationOptions) => void;
   showPreview: (customOptions?: CustomAnimationOptions) => void;
-  handleSlideClick: (index: number, customOptions?: CustomAnimationOptions) => void;
-  
+  handleSlideClick: (
+    index: number,
+    customOptions?: CustomAnimationOptions
+  ) => void;
+
   // State values
   selectedSlide: number | null;
   stage: string;
   isAnimating: boolean;
   isEffectActive: boolean;
-  
+
   // Helper methods
   getCurrentStage: () => string;
   isStageActive: (stageName: string) => boolean;
 }
-
-
