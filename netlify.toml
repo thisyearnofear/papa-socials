@@ -2,37 +2,29 @@
   command = "npm run build"
   publish = ".next"
 
-# Optimize images and Next.js
+[build.environment]
+  NODE_VERSION = "18"
+  SHARP_IGNORE_GLOBAL_LIBVIPS = "1"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Cache control for static assets
 [[headers]]
   for = "/_next/static/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache control for images
 [[headers]]
   for = "/_next/image/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache control for fonts
 [[headers]]
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache control for HTML pages
 [[headers]]
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
-
-# Redirect all image requests to Netlify's image CDN
-[[redirects]]
-  from = "/_next/image*"
-  to = "/_next/image:splat"
-  status = 200
-  force = true
