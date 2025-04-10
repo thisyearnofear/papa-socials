@@ -119,29 +119,29 @@ export function useClipAnimation(
 
   // Default animation options that can be overridden
   const defaultOptions = {
-    // Initial to grid transition options
+    // Initial to grid transition options - simplified for reliability
     initialToGrid: {
-      clipPath: "inset(22% 39% round 23vw)",
-      clipScale: 0.8,
-      slideDuration: 1.4,
-      slideEase: "power3.inOut",
-      slideStaggerAmount: 0.15,
-      slideStaggerFrom: "center",
-      titleDuration: 1,
-      titleStaggerAmount: 0.2,
-      titleStaggerFrom: "center",
+      clipPath: "inset(0% 0% round 0vw)", // Simpler clip path
+      clipScale: 0.9,
+      slideDuration: 0.8, // Faster duration
+      slideEase: "power2.out", // Simpler easing
+      slideStaggerAmount: 0.05, // Less staggering
+      slideStaggerFrom: "start", // More predictable staggering
+      titleDuration: 0.5, // Faster title animation
+      titleStaggerAmount: 0.05, // Less staggering
+      titleStaggerFrom: "start", // More predictable staggering
     },
-    // Grid to initial transition options
+    // Grid to initial transition options - simplified for reliability
     gridToInitial: {
       clipPath: "inset(0% 0% round 0vw)",
       clipScale: 1,
-      slideDuration: 0.8,
-      slideEase: "power3.inOut",
-      slideStaggerAmount: 0.15,
-      slideStaggerFrom: "edges",
-      titleDuration: 1,
-      titleStaggerAmount: 0.2,
-      titleStaggerFrom: "center",
+      slideDuration: 0.6, // Faster duration
+      slideEase: "power2.in", // Simpler easing
+      slideStaggerAmount: 0.05, // Less staggering
+      slideStaggerFrom: "start", // More predictable staggering
+      titleDuration: 0.5, // Faster title animation
+      titleStaggerAmount: 0.05, // Less staggering
+      titleStaggerFrom: "start", // More predictable staggering
     },
     // Grid to content transition options
     gridToContent: {
@@ -201,6 +201,11 @@ export function useClipAnimation(
       slidesRef.current.classList.add("grid-active");
     } else {
       slidesRef.current.classList.remove("grid-active");
+    }
+
+    // Update body data attribute for CSS targeting
+    if (typeof document !== "undefined") {
+      document.body.setAttribute("data-stage", stage);
     }
   }, [stage, stages, slidesRef]);
 
@@ -482,15 +487,17 @@ export function useClipAnimation(
       // Ensure content container is ready to be visible
       const contentContainer = document.querySelector(
         contentSelector as string
-      );
+      ) as HTMLElement;
       if (contentContainer) {
         // Make sure it's visible but transparent initially
-        (window as any).gsap.set(contentContainer, {
-          visibility: "visible",
-          opacity: 0,
-          display: "block", // Ensure it's displayed
-          zIndex: 1000, // Ensure it's above other elements
-        });
+        if (contentContainer instanceof HTMLElement) {
+          (window as any).gsap.set(contentContainer, {
+            visibility: "visible",
+            opacity: 0,
+            display: "block", // Ensure it's displayed
+            zIndex: 1000, // Ensure it's above other elements
+          });
+        }
         console.log(
           "Content container found and set to visible:",
           contentSelector
@@ -502,7 +509,7 @@ export function useClipAnimation(
         console.warn("Content container not found:", contentSelector);
 
         // Try to create the container if it doesn't exist
-        const newContainer = document.createElement("div");
+        const newContainer = document.createElement("div") as HTMLDivElement;
         newContainer.className = "discography-container";
         newContainer.innerHTML =
           '<div class="discography-header"><h2>DISCOGRAPHY</h2><button class="discography-back">← Back to music</button></div>';
@@ -557,9 +564,11 @@ export function useClipAnimation(
                 console.log("Animation to discography stage complete");
 
                 // Force a reflow to ensure the container is visible
-                (contentContainer as HTMLElement).style.display = "block";
-                (contentContainer as HTMLElement).style.opacity = "1";
-                (contentContainer as HTMLElement).style.visibility = "visible";
+                if (contentContainer instanceof HTMLElement) {
+                  contentContainer.style.display = "block";
+                  contentContainer.style.opacity = "1";
+                  contentContainer.style.visibility = "visible";
+                }
               },
             });
           } else {
@@ -701,13 +710,15 @@ export function useClipAnimation(
             onComplete: () => {
               console.log("Content container hidden");
               // Ensure it's fully hidden
-              (contentContainer as HTMLElement).style.display = "none";
-              contentContainer.classList.remove("debug-visible");
+              if (contentContainer instanceof HTMLElement) {
+                contentContainer.style.display = "none";
+                contentContainer.classList.remove("debug-visible");
 
-              // Force removal of the container from the DOM
-              const parent = contentContainer.parentElement;
-              if (parent) {
-                parent.removeChild(contentContainer);
+                // Safely hide the container instead of removing it
+                // This avoids the removeChild error
+                contentContainer.style.visibility = "hidden";
+                contentContainer.style.opacity = "0";
+                contentContainer.style.pointerEvents = "none";
               }
             },
           });

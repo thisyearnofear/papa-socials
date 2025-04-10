@@ -119,6 +119,54 @@ body.discography-active .discography-container {
   z-index: 9999;
 }
 
+/* Pulsing effect and clickable title */
+.pulse-title {
+  animation: pulse 2s infinite;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
+  color: #fff !important;
+  font-weight: bold !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 215, 0, 0.7);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.clickable {
+  cursor: pointer;
+  z-index: 9999 !important;
+  position: relative !important;
+  pointer-events: auto !important;
+}
+
+.title-wrapper {
+  position: relative;
+}
+
+body[data-stage="grid"] .cover__title {
+  transition: all 0.3s ease;
+  font-size: 3rem !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.cover__title:hover {
+  transform: scale(1.05);
+}
+
 /* Discography header styles */
 .discography-header {
   display: flex;
