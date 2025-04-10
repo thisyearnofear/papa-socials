@@ -25,6 +25,15 @@ export default function BandPage() {
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
 
+  // Preload the first band member image
+  useEffect(() => {
+    if (bandMembers.length > 0) {
+      const preloadImage = new globalThis.Image();
+      preloadImage.src = bandMembers[0].image;
+      // No need to track loaded state if we're not using it
+    }
+  }, []);
+
   const {
     clipRef,
     clipImageRef,
@@ -139,6 +148,10 @@ export default function BandPage() {
           name="keywords"
           content="PAPA, band members, musicians, collaborators, afro gospel, latino rhythms, music artists, Distance, Legacy, Rafiki, Down In The Dirt, Zeno, Paradox, lyrics"
         />
+        {/* Preload the first band member image */}
+        {bandMembers.length > 0 && (
+          <link rel="preload" as="image" href={bandMembers[0].image} />
+        )}
       </Head>
 
       <Layout>

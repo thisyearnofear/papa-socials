@@ -24,6 +24,13 @@ export default function EventsPage() {
   const setShowEventsDetails = useState(false)[1];
   const setSelectedEvent = useState<number | null>(null)[1];
 
+  // Preload the main background image
+  useEffect(() => {
+    const preloadImage = new globalThis.Image();
+    preloadImage.src = "/img/demo3/1.jpg";
+    // No need to track loaded state if we're not using it
+  }, []);
+
   const {
     clipRef,
     clipImageRef,
@@ -198,6 +205,8 @@ export default function EventsPage() {
           name="keywords"
           content="PAPA, events, concerts, performances, music festivals, live music, tour dates"
         />
+        {/* Preload the critical background image */}
+        <link rel="preload" as="image" href="/img/demo3/1.jpg" />
       </Head>
 
       <Layout>
@@ -515,6 +524,7 @@ export default function EventsPage() {
                           alt="Africa Rising Music Conference"
                           fill
                           style={{ objectFit: "cover", borderRadius: "8px" }}
+                          priority
                         />
                       </div>
 

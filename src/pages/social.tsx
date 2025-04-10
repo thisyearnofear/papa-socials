@@ -7,6 +7,7 @@ import {
 import SocialLinks from "../../components/SocialLinks";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import Image from "next/image";
 
 // Social media icons for floating animation
 const socialIcons = [
@@ -17,6 +18,7 @@ const socialIcons = [
 ];
 
 export default function SocialPage() {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
@@ -218,6 +220,13 @@ export default function SocialPage() {
     return () => {};
   }, [stage, titleRef, handleSlideClick, slidesRef]);
 
+  // Preload the cover image
+  useEffect(() => {
+    const preloadImage = new globalThis.Image();
+    preloadImage.src = "/img/demo2/1.jpg";
+    preloadImage.onload = () => setImageLoaded(true);
+  }, []);
+
   return (
     <>
       <Head>
@@ -230,6 +239,8 @@ export default function SocialPage() {
           name="keywords"
           content="PAPA, social media, connect, community, music artist"
         />
+        {/* Add preload hints for critical images */}
+        <link rel="preload" href="/img/demo2/1.jpg" as="image" />
       </Head>
 
       <Layout>
@@ -271,16 +282,25 @@ export default function SocialPage() {
           <div
             className="clip__img"
             ref={clipImageRef}
-            style={{ backgroundImage: "url(/img/demo2/1.jpg)" }}
-          ></div>
-        </div>
-
-        <div className="clip" ref={clipRef}>
-          <div
-            className="clip__img"
-            ref={clipImageRef}
-            style={{ backgroundImage: "url(/img/demo2/1.jpg)" }}
-          ></div>
+            style={{ position: "relative", width: "100%", height: "100%" }}
+          >
+            <Image
+              src="/img/demo2/1.jpg"
+              alt="Connect with PAPA"
+              fill
+              priority={true}
+              quality={85}
+              style={{
+                objectFit: "cover",
+                opacity: imageLoaded ? 1 : 0,
+                transition: "opacity 0.3s ease-in",
+              }}
+              sizes="100vw"
+              onLoadingComplete={() => setImageLoaded(true)}
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            />
+          </div>
         </div>
 
         <div className="cover">
