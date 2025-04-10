@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "npm run optimize-images && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "optimize-images": "node scripts/optimize-images.js"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
@@ -29,6 +30,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
+    "glob": "^10.4.5",
+    "sharp": "^0.33.5",
     "typescript": "^5"
   }
 }
