@@ -42,12 +42,12 @@ export default function MusicPage() {
       },
     },
     defaultAnimationOptions: {
-      // Keep the same initial to grid options
+      // Initial to grid transition
       initialToGrid: {
         clipPath: "inset(22% 39% round 23vw)",
         clipScale: 0.8,
         slideDuration: 1.4,
-        slideEase: "power3.inOut",
+        slideEase: "power2.inOut",
         slideStaggerAmount: 0.15,
         slideStaggerFrom: "center",
         titleDuration: 1,
@@ -58,14 +58,13 @@ export default function MusicPage() {
         clipPath: "inset(0% 0% round 0vw)",
         clipScale: 1,
         slideDuration: 0.8,
-        slideEase: "power3.inOut",
+        slideEase: "power2.inOut",
         slideStaggerAmount: 0.15,
         slideStaggerFrom: "edges",
         titleDuration: 1,
         titleStaggerAmount: 0.2,
         titleStaggerFrom: "center",
       },
-      // Simplify the grid to content options to match the working pages
       gridToContent: {
         contentSelector: ".discography-container",
         slideOpacity: 0.2,

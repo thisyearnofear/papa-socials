@@ -1,12 +1,14 @@
 import Head from "next/head";
 import Layout from "../../components/Layout";
 import { useClipAnimation, ClipAnimationReturn } from "../../hooks/useClipAnimation";
-import React from "react";
+import React, { useEffect } from "react";
 import { bandMembers } from "../../data/band-members";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function BandPage() {
   const [selectedMember, setSelectedMember] = React.useState<number | null>(null);
+  const [isTitleClickable, setIsTitleClickable] = React.useState(false);
+  const [isCoverHidden, setIsCoverHidden] = React.useState(false);
 
   // Use the refactored hook with custom options for band/discography page
   const { 
@@ -21,27 +23,52 @@ export default function BandPage() {
     initialStage: 'initial',
     stages: ['initial', 'grid', 'discography'],
     callbacks: {
-      // Custom callback when stage changes
-      onStageChange: (newStage: string, index?: number) => {
-        console.log(`Band page transitioned to ${newStage} stage`, index ? `with slide ${index}` : '');
+      onStageChange: (newStage: string) => {
+        console.log(`Band page transitioned to ${newStage} stage`);
+        
+        // Update state based on stage
+        if (newStage === 'grid') {
+          setIsTitleClickable(true);
+          setIsCoverHidden(true);
+        } else {
+          setIsTitleClickable(false);
+          setIsCoverHidden(false);
+        }
       }
     },
-    // Custom animation options specific to band/discography page
     defaultAnimationOptions: {
       gridToContent: {
-        // Customize the grid to content transition for discography
-        slideOpacity: 0.2,
+        contentSelector: '.band-member-container',
+        slideOpacity: 0.1,
         slideScale: 0.85,
         selectedOpacity: 0.9,
-        selectedScale: 1.1,
-        selectedY: -30,
-        contentSelector: '.discography-container'
+        selectedScale: 1.15
       },
       contentToGrid: {
-        contentSelector: '.discography-container'
+        contentSelector: '.band-member-container'
       }
     }
   });
+
+  // Handle title click through state
+  const handleTitleClick = () => {
+    if (isTitleClickable && stage === 'grid') {
+      toggleEffect();
+    }
+  };
+
+  useEffect(() => {
+    const coverButton = document.querySelector('.cover__button');
+    if (coverButton) {
+      // Hide cover button in grid stage
+      if (stage === 'grid') {
+        coverButton.setAttribute('style', 'display: none; pointer-events: none;');
+      } else {
+        // Reset cover button style
+        coverButton.setAttribute('style', '');
+      }
+    }
+  }, [stage]);
 
   return (
     <>
@@ -96,12 +123,16 @@ export default function BandPage() {
           <div
             className="clip__img"
             ref={clipImageRef}
-            style={{ backgroundImage: `url(${bandMembers[0].image})` }}
+            style={{ 
+              backgroundImage: `url(${bandMembers[0]?.image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
           ></div>
         </div>
 
         <div className="cover">
-          <h2 className="cover__title" ref={titleRef} data-splitting>
+          <h2 className={`cover__title ${isTitleClickable ? 'pulse-title' : ''}`} onClick={handleTitleClick} ref={titleRef} data-splitting>
             The Band
           </h2>
           <p className="cover__description">
@@ -110,27 +141,52 @@ export default function BandPage() {
             drums here, a pinch of horn there, tablespoon of boiling Memphis
             guitar sprinkled in.
           </p>
-          <button className="cover__button unbutton" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
-            Meet The Band
-          </button>
+          {!isCoverHidden && (
+            <button className="cover__button unbutton" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
+              Meet The Band
+            </button>
+          )}
         </div>
 
         {/* Band Member Details - appears after slide selection */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {stage === 'discography' && selectedMember && (
             <motion.div 
               className="band-member-container"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              style={{
+                pointerEvents: 'none',
+                opacity: 0.8,
+                marginLeft: '20px',
+                marginRight: '20px'
+              }}
+              initial={{ 
+                opacity: 0, 
+                y: 50,
+                scale: 0.95
+              }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                scale: 1,
+                transition: {
+                  duration: 0.9,
+                  ease: 'easeOut',
+                  delay: 0.2
+                }
+              }}
+              exit={{ 
+                opacity: 0, 
+                y: -50,
+                scale: 0.95,
+                transition: {
+                  duration: 0.6,
+                  ease: 'easeInOut'
+                }
+              }}
             >
               <div className="band-member-header">
                 <h2>BAND MEMBER</h2>
-                <button className="band-member-back" onClick={(e) => { e.preventDefault(); toggleEffect(); }}>
-                  ← Back to band
-                </button>
               </div>
-              
               <div className="band-member-content">
                 {bandMembers.find(member => member.id === selectedMember) && (
                   <div className="band-member-details">

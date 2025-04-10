@@ -55,12 +55,28 @@ export default function SocialPage() {
     instagramScript.async = true;
     document.body.appendChild(instagramScript);
     
-    return () => {
-      // Clean up scripts when component unmounts
-      if (document.body.contains(instagramScript)) {
-        document.body.removeChild(instagramScript);
+    // Create a cleanup function that can only be called once
+    let hasCleanedUp = false;
+    const cleanup = () => {
+      if (hasCleanedUp) return;
+      hasCleanedUp = true;
+      
+      try {
+        if (instagramScript && instagramScript.parentNode) {
+          // Remove event listeners first
+          instagramScript.onload = null;
+          instagramScript.onerror = null;
+          
+          // Remove script
+          instagramScript.parentNode.removeChild(instagramScript);
+        }
+      } catch (error) {
+        console.warn('Failed to clean up Instagram script:', error);
       }
     };
+    
+    // Return cleanup function
+    return cleanup;
   }, []);
   
   // Debug stage changes and add visual cues
