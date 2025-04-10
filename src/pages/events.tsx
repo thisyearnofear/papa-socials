@@ -1,14 +1,18 @@
 import Head from "next/head";
-import Image from "next/image";
 import Layout from "../../components/Layout";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-  CustomAnimationOptions,
 } from "../../hooks/useClipAnimation";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { OptimizedImage } from "../../components/OptimizedImage";
+import dynamic from "next/dynamic";
+
+// Import EventsContent dynamically with no SSR to avoid hydration issues
+const EventsContent = dynamic(() => import("../../components/EventsContent"), {
+  ssr: false,
+});
 
 // Simplified calendar icons for floating animation
 const calendarIcons = [
@@ -20,16 +24,21 @@ const calendarIcons = [
 
 export default function EventsPage() {
   const [showHint, setShowHint] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
   const setShowEventsDetails = useState(false)[1];
   const setSelectedEvent = useState<number | null>(null)[1];
 
+  // Set isMounted after component mounts to avoid SSR hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Preload the main background image
   useEffect(() => {
     const preloadImage = new globalThis.Image();
     preloadImage.src = "/img/demo3/1.jpg";
-    // No need to track loaded state if we're not using it
   }, []);
 
   const {
@@ -46,7 +55,6 @@ export default function EventsPage() {
     callbacks: {
       onStageChange: (newStage: string, index?: number) => {
         console.log(`Events page transitioned to ${newStage} stage`);
-        // Only show event details when in the 'events' stage
         setShowEventsDetails(newStage === "events");
         if (index !== undefined) {
           setSelectedEvent(index);
@@ -55,14 +63,14 @@ export default function EventsPage() {
     },
     defaultAnimationOptions: {
       gridToContent: {
-        contentSelector: ".events-container",
+        contentSelector: ".papa-events-container",
         slideOpacity: 0.1,
         slideScale: 0.85,
         selectedOpacity: 0.9,
         selectedScale: 1.15,
       },
       contentToGrid: {
-        contentSelector: ".events-container",
+        contentSelector: ".papa-events-container",
       },
     },
   });
@@ -107,87 +115,15 @@ export default function EventsPage() {
     }
   }, [showHint, stage]);
 
-  // Debug stage changes and add visual cues
-  useEffect(() => {
-    console.log("Current stage:", stage);
-
-    // Add visual cues based on the current stage
-    if (stage === "grid") {
-      console.log("Adding clickable title effects for grid stage");
-
-      // Find and hide the initial cover button to prevent it from blocking clicks
-      const coverButton = document.querySelector(".cover__button");
-      if (coverButton) {
-        coverButton.setAttribute(
-          "style",
-          "display: none; pointer-events: none;"
-        );
-      }
-
-      // Store ref values in variables to avoid issues in cleanup function
-      const titleElementRef = titleRef.current;
-      const slidesContainerRef = slidesRef.current;
-
-      // Add pulsing effect to the title to indicate it's clickable
-      if (titleElementRef) {
-        titleElementRef.classList.add("pulse-title");
-      }
-
-      // Make sure the title wrapper is clickable
-      const titleWrapper = document.querySelector(".title-wrapper");
-      if (titleWrapper) {
-        console.log("Title wrapper found, making it clickable");
-        titleWrapper.classList.add("clickable");
-        // Use !important to override any other styles
-        titleWrapper.setAttribute(
-          "style",
-          "z-index: 9999 !important; position: relative !important; pointer-events: auto !important;"
-        );
-
-        // Add a direct click event listener
-        const clickHandler = () => {
-          console.log("Title wrapper clicked directly");
-          if (stage === "grid") {
-            handleSlideClick(0);
-          }
-        };
-
-        titleWrapper.addEventListener("click", clickHandler);
-
-        // Store the handler for cleanup
-        return () => {
-          titleWrapper.removeEventListener("click", clickHandler);
-
-          if (titleElementRef) {
-            titleElementRef.classList.remove("pulse-title");
-          }
-
-          if (titleWrapper) {
-            titleWrapper.classList.remove("clickable");
-            titleWrapper.removeAttribute("style");
-          }
-        };
-      }
-
-      // Force the grid class to be applied to the slides container
-      if (
-        slidesContainerRef &&
-        !slidesContainerRef.classList.contains("grid")
-      ) {
-        console.log("Forcing grid class on slides container");
-        slidesContainerRef.classList.add("grid");
-      }
-
-      // Make sure any potential blocking elements are not blocking
-      const slides = document.querySelectorAll(".slides__slide");
-      slides.forEach((slide) => {
-        slide.setAttribute("style", "pointer-events: none;");
-      });
-    }
-
-    // Default cleanup function if the titleWrapper wasn't found
-    return () => {};
-  }, [stage, titleRef, handleSlideClick, slidesRef]);
+  // Handle toggle effect for returning to grid
+  const handleBackClick = useCallback(() => {
+    toggleEffect({
+      contentSelector: ".papa-events-container",
+      onCompleteCallback: () => {
+        console.log("Successfully returned to grid view");
+      },
+    });
+  }, [toggleEffect]);
 
   return (
     <>
@@ -201,7 +137,6 @@ export default function EventsPage() {
           name="keywords"
           content="PAPA, events, concerts, performances, music festivals, live music, tour dates"
         />
-        {/* Preload the critical background image */}
         <link rel="preload" as="image" href="/img/demo3/1.jpg" />
       </Head>
 
@@ -422,377 +357,17 @@ export default function EventsPage() {
           </motion.button>
         </div>
 
-        {/* Events Container - appears after slide selection */}
-        <AnimatePresence>
-          {stage === "events" && (
-            <motion.div
-              className="events-container"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                willChange: "opacity",
-                maxWidth: "1200px",
-                margin: "0 auto",
-                padding: "20px",
-              }}
-            >
-              <div className="events-header">
-                <button
-                  className="events-back"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    // Call toggleEffect directly - the onStageChange callback will handle hiding the events
-                    toggleEffect({
-                      // Custom options for transitioning back to grid view
-                      contentSelector: ".events-container",
-                      onCompleteCallback: () => {
-                        console.log("Successfully returned to grid view");
-                      },
-                    } as CustomAnimationOptions);
-                  }}
-                >
-                  Back
-                </button>
-              </div>
-
-              <div className="events-content">
-                <div className="event-list">
-                  {/* Event 1 - Africa Rising Music Conference */}
-                  <div
-                    className="event-item"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      marginBottom: "40px",
-                      padding: "20px",
-                      backgroundColor: "rgba(0, 0, 0, 0.5)",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: "20px",
-                        width: "100%",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "200px",
-                          height: "200px",
-                          position: "relative",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <OptimizedImage
-                          src="/img/demo3/2.jpg"
-                          alt="Africa Rising Music Conference"
-                          fill
-                          style={{ objectFit: "cover", borderRadius: "8px" }}
-                          priority
-                          quality={85}
-                        />
-                      </div>
-
-                      <div
-                        className="event-date"
-                        style={{
-                          textAlign: "center",
-                          padding: "10px",
-                          borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                        }}
-                      >
-                        <span
-                          className="event-month"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(1rem, 2vw, 1.25rem)",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          MAY
-                        </span>
-                        <span
-                          className="event-day"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(1.5rem, 3vw, 2rem)",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          22
-                        </span>
-                        <span
-                          className="event-year"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                          }}
-                        >
-                          2025
-                        </span>
-                      </div>
-
-                      <div
-                        className="event-details"
-                        style={{
-                          flex: 1,
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-                            marginBottom: "10px",
-                          }}
-                        >
-                          ARMC 2025
-                        </h3>
-                        <p
-                          className="event-location"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          11 Kotze street, Braamfontein Joburg, SA
-                        </p>
-                        <p
-                          className="event-time"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          Thu 09:30 - Fri 23:59
-                        </p>
-                        <p
-                          className="event-description"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "15px",
-                          }}
-                        >
-                          Presented by Africa Rising Music Conference 2025
-                        </p>
-                        <a
-                          href="https://ra.co/events/2110727"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="event-tickets"
-                          style={{
-                            display: "inline-block",
-                            padding: "8px 16px",
-                            backgroundColor: "transparent",
-                            border: "1px solid white",
-                            color: "white",
-                            borderRadius: "4px",
-                            textDecoration: "none",
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            transition: "all 0.3s ease",
-                          }}
-                        >
-                          Get Tickets
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Event 2 - Bassline Fest */}
-                  <div
-                    className="event-item"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      marginBottom: "40px",
-                      padding: "20px",
-                      backgroundColor: "rgba(0, 0, 0, 0.5)",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: "20px",
-                        width: "100%",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "200px",
-                          height: "200px",
-                          position: "relative",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <OptimizedImage
-                          src="/img/demo3/3.jpg"
-                          alt="Bassline Fest"
-                          fill
-                          style={{ objectFit: "cover", borderRadius: "8px" }}
-                          quality={85}
-                        />
-                      </div>
-
-                      <div
-                        className="event-date"
-                        style={{
-                          textAlign: "center",
-                          padding: "10px",
-                          borderRight: "1px solid rgba(255, 255, 255, 0.2)",
-                        }}
-                      >
-                        <span
-                          className="event-month"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(1rem, 2vw, 1.25rem)",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          MAY
-                        </span>
-                        <span
-                          className="event-day"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(1.5rem, 3vw, 2rem)",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          24-25
-                        </span>
-                        <span
-                          className="event-year"
-                          style={{
-                            display: "block",
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                          }}
-                        >
-                          2025
-                        </span>
-                      </div>
-
-                      <div
-                        className="event-details"
-                        style={{
-                          flex: 1,
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-                            marginBottom: "10px",
-                          }}
-                        >
-                          Bassline Fest 2025
-                        </h3>
-                        <p
-                          className="event-location"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          Constitutional Hill, Johannesburg, South Africa
-                        </p>
-                        <p
-                          className="event-time"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          Sat & Sun - All Day
-                        </p>
-                        <p
-                          className="event-description"
-                          style={{
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            marginBottom: "15px",
-                          }}
-                        >
-                          Presented by Bassline Fest 2025
-                        </p>
-                        <a
-                          href="https://bassline.co.za/bassline-fest/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="event-tickets"
-                          style={{
-                            display: "inline-block",
-                            padding: "8px 16px",
-                            backgroundColor: "transparent",
-                            border: "1px solid white",
-                            color: "white",
-                            borderRadius: "4px",
-                            textDecoration: "none",
-                            fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                            transition: "all 0.3s ease",
-                          }}
-                        >
-                          Get Tickets
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Support Information with centered styling */}
-                  <div
-                    className="support-info"
-                    style={{
-                      textAlign: "center",
-                      maxWidth: "800px",
-                      margin: "40px auto",
-                      padding: "20px",
-                    }}
-                  >
-                    <p
-                      className="support-text"
-                      style={{
-                        fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
-                        marginBottom: "20px",
-                        lineHeight: "1.6",
-                      }}
-                    >
-                      Papa is supported by PRS Foundation&apos;s International
-                      Showcase Fund, which is run by PRS Foundation in
-                      partnership with Department of Business and Trade (DBT),
-                      British Underground, Arts Council England, British
-                      Council, The Musicians&apos; Union (MU), PPL, Creative
-                      Scotland, Wales Arts International and Arts Council of
-                      Northern Ireland
-                    </p>
-                    <div className="support-logo">
-                      <Image
-                        src="/ISF.png"
-                        alt="International Showcase Fund Logo"
-                        width={200}
-                        height={100}
-                        style={{ margin: "0 auto" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Events Container - appears after slide selection - Client-side only */}
+        {isMounted && stage === "events" && (
+          <EventsContent onBackClick={handleBackClick} />
+        )}
 
         <style jsx global>{`
           .interactive-title {
             position: relative;
             z-index: 100;
             transition: all 0.3s ease;
+            text-align: center;
           }
 
           .interactive-title::after {
@@ -814,6 +389,9 @@ export default function EventsPage() {
           @media (max-width: 768px) {
             .interactive {
               padding: 30px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
             }
 
             .interactive-title {
