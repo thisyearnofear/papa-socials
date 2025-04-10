@@ -1,37 +1,23 @@
 import Head from "next/head";
-import Layout from "../../components/Layout";
-import { OptimizedImage } from "../../components/OptimizedImage";
+import Layout from "../components/Layout";
+import { OptimizedImage } from "../components/OptimizedImage";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-} from "../../hooks/useClipAnimation";
+} from "../hooks/useClipAnimation";
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { albums, eps } from "../../data/lyrics";
+import { albums, eps } from "../data/lyrics/index.js";
 import dynamic from "next/dynamic";
 
 // Dynamically import DiscographyItem with loading state
-const DiscographyItem = dynamic(
-  () => import("../../components/DiscographyItem"),
-  {
-    loading: () => (
-      <div
-        style={{
-          background: "rgba(255, 255, 255, 0.1)",
-          borderRadius: "8px",
-          padding: "20px",
-          minHeight: "200px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        Loading...
-      </div>
-    ),
-    ssr: false, // Disable server-side rendering for this component
-  }
-);
+const DiscographyItem = dynamic(() => import("../components/DiscographyItem"), {
+  loading: () => (
+    <div className="album-placeholder">
+      <div className="loading-spinner"></div>
+    </div>
+  ),
+});
 
 // Music note positions for the floating animation
 const musicNotes = [

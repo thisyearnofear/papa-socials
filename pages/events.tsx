@@ -1,16 +1,16 @@
 import Head from "next/head";
-import Layout from "../../components/Layout";
+import Layout from "../components/Layout";
 import {
   useClipAnimation,
   ClipAnimationReturn,
-} from "../../hooks/useClipAnimation";
+} from "../hooks/useClipAnimation";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { OptimizedImage } from "../../components/OptimizedImage";
+import { OptimizedImage } from "../components/OptimizedImage";
 import dynamic from "next/dynamic";
 
-// Import EventsContent dynamically with no SSR to avoid hydration issues
-const EventsContent = dynamic(() => import("../../components/EventsContent"), {
+// Dynamically import EventsContent with no server-side rendering
+const EventsContent = dynamic(() => import("../components/EventsContent"), {
   ssr: false,
 });
 
