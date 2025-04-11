@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 
-// Define asset metadata interface
+// Asset and metadata interfaces
 export interface AssetMetadata {
   title?: string;
   description?: string;
@@ -17,7 +17,6 @@ export interface AssetMetadata {
   [key: string]: unknown;
 }
 
-// Define storage result interfaces
 export interface StorageResult {
   cid: string;
   metadata: AssetMetadata;
@@ -30,7 +29,6 @@ export interface StorageResults {
   urls: string[];
 }
 
-// Define FilecoinAsset interface
 export interface FilecoinAsset {
   id: number;
   cid: string;
@@ -42,12 +40,26 @@ export interface FilecoinAsset {
   uploadedAt: string;
 }
 
-// Define context type
+// User space information
+export interface UserSpace {
+  spaceDid: string;
+  spaceName: string;
+  email: string;
+}
+
+// Context type definition
 interface FilecoinContextType {
   isInitialized: boolean;
   isLoading: boolean;
   error: string | null;
+  userSpace: UserSpace | null;
   storedAssets: FilecoinAsset[];
+  agentDid: string | null;
+  createUserSpace: (
+    email: string,
+    spaceName: string
+  ) => Promise<UserSpace | null>;
+  loginWithEmail: (email: string) => Promise<boolean>;
   uploadFile: (
     file: File,
     metadata?: AssetMetadata
@@ -58,6 +70,21 @@ interface FilecoinContextType {
   ) => Promise<StorageResults | null>;
   verifyAsset: (asset: FilecoinAsset) => Promise<boolean>;
   refreshAssets: () => Promise<void>;
+  loadMoreAssets: () => Promise<boolean>;
+  getAvailableSpaces: (
+    email: string,
+    cursor?: string
+  ) => Promise<{
+    spaces: Array<{ did: string; name: string }>;
+    cursor?: string;
+  }>;
+  checkLoginStatus: () => Promise<boolean>;
+  logout: () => void;
+  switchSpace: (
+    spaceDid: string,
+    email: string,
+    spaceName: string
+  ) => Promise<boolean>;
 }
 
 // Create context
@@ -82,63 +109,6 @@ interface FilecoinProviderProps {
   children: ReactNode;
 }
 
-// Create sample demo assets when none exist
-const createDemoAssets = (): FilecoinAsset[] => {
-  return [
-    {
-      id: 1,
-      cid: "bafkreifvallbyfxnedeseuvkkswt5u3hbdb2fexcygbyjqy5a5rzmhrzei",
-      name: "demo-image-1.jpg",
-      type: "image/jpeg",
-      size: 245000,
-      url: "https://bafkreifvallbyfxnedeseuvkkswt5u3hbdb2fexcygbyjqy5a5rzmhrzei.ipfs.w3s.link",
-      metadata: {
-        title: "Band Rehearsal",
-        description: "Behind the scenes of our first rehearsal",
-        creator: "PAPA",
-        date: "2023-06-15",
-        tags: ["rehearsal", "behind-the-scenes", "studio"],
-        type: "image",
-      },
-      uploadedAt: "2023-06-15T14:32:11.000Z",
-    },
-    {
-      id: 2,
-      cid: "bafkreicfnbaeigdtklwkrj35r4wtfppix732zromsadvgiu33mowah74yq",
-      name: "lyrics-v1.pdf",
-      type: "application/pdf",
-      size: 124500,
-      url: "https://bafkreicfnbaeigdtklwkrj35r4wtfppix732zromsadvgiu33mowah74yq.ipfs.w3s.link",
-      metadata: {
-        title: "Original Lyrics Sheet",
-        description: "First draft of our lyrics for the album",
-        creator: "PAPA",
-        date: "2023-05-20",
-        tags: ["lyrics", "unreleased", "draft"],
-        type: "document",
-      },
-      uploadedAt: "2023-05-20T09:15:22.000Z",
-    },
-    {
-      id: 3,
-      cid: "bafybeicxbt4ephfuqvkofrqyj7ybtgkeuujkmbwsdne45dd5ysxim3qhiy",
-      name: "demo-song.mp3",
-      type: "audio/mpeg",
-      size: 3450000,
-      url: "https://bafybeicxbt4ephfuqvkofrqyj7ybtgkeuujkmbwsdne45dd5ysxim3qhiy.ipfs.w3s.link",
-      metadata: {
-        title: "Demo Track - Early Days",
-        description: "First demo recording of our unreleased track",
-        creator: "PAPA",
-        date: "2023-04-10",
-        tags: ["demo", "unreleased", "recording"],
-        type: "audio",
-      },
-      uploadedAt: "2023-04-10T16:44:33.000Z",
-    },
-  ];
-};
-
 // FilecoinProvider component
 export function FilecoinProvider({ children }: FilecoinProviderProps) {
   // Check if we're in the browser
@@ -146,13 +116,15 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
 
   // State
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start as loading
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [storedAssets, setStoredAssets] = useState<FilecoinAsset[]>([]);
-  const [spaceDid, setSpaceDid] = useState<string>("");
-  const [initAttempted, setInitAttempted] = useState<boolean>(false);
+  const [userSpace, setUserSpace] = useState<UserSpace | null>(null);
+  const [agentDid, setAgentDid] = useState<string | null>(null);
+  const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(true);
+  const [currentCursor, setCurrentCursor] = useState<string>("");
 
-  // Load stored assets on mount and initialize
+  // Initialize agent and check for existing space
   useEffect(() => {
     if (!isBrowser) {
       console.log("Skipping FilecoinProvider initialization in SSR context");
@@ -161,121 +133,92 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
 
     console.log("FilecoinProvider initializing in browser context...");
 
-    // First priority: immediately load assets from localStorage to show content
-    const loadAssetsFromStorage = () => {
+    // Initialize the client and get the agent DID
+    const initializeAgent = async () => {
       try {
-        const savedAssets = localStorage.getItem("filecoin_assets");
-        if (savedAssets) {
-          const parsedAssets = JSON.parse(savedAssets);
-          setStoredAssets(parsedAssets);
-          console.log("Loaded stored assets from localStorage");
-        } else {
-          // Create demo assets if nothing is stored
-          const demoAssets = createDemoAssets();
-          setStoredAssets(demoAssets);
-          localStorage.setItem("filecoin_assets", JSON.stringify(demoAssets));
-          console.log("Created and loaded demo assets");
-        }
-        setIsLoading(false); // Stop loading since we have assets to display
-      } catch (err) {
-        console.error("Error loading stored assets:", err);
-        const demoAssets = createDemoAssets();
-        setStoredAssets(demoAssets);
-        setIsLoading(false);
-      }
-    };
+        // Create the client and get the agent DID
+        const response = await fetch("/api/storage/agent", {
+          method: "GET",
+        });
 
-    // Immediately load assets to prevent waiting
-    loadAssetsFromStorage();
-
-    // Then attempt to initialize Storacha in the background
-    const initializeInBackground = async () => {
-      // Don't attempt multiple initializations
-      if (initAttempted) return;
-
-      setInitAttempted(true);
-
-      try {
-        // Check if we have cached initialization state
-        const cachedInitState = localStorage.getItem("filecoin_initialized");
-        if (cachedInitState === "true") {
-          setIsInitialized(true);
-          console.log("Using cached initialization state");
+        if (!response.ok) {
+          console.warn("Failed to initialize agent");
           return;
         }
 
-        // Set a timeout to prevent hanging forever
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error("Initialization timed out after 15 seconds"));
-          }, 15000);
-        });
+        const data = await response.json();
+        setAgentDid(data.agentDid);
 
-        // Race between initialization and timeout
-        const initPromise = initializeStorage();
-        await Promise.race([initPromise, timeoutPromise])
-          .then(() => {
-            // Cache successful initialization
-            localStorage.setItem("filecoin_initialized", "true");
-          })
-          .catch((err) => {
-            console.warn("Initialization did not complete: ", err.message);
-            // Don't block the UI - just continue with local data
-          });
-      } catch (error) {
-        console.error("Error in background initialization:", error);
+        // Load stored assets
+        loadAssetsFromStorage();
+
+        // Check if we have a user space in localStorage
+        const savedSpace = localStorage.getItem("user_space");
+        if (savedSpace) {
+          try {
+            const parsedSpace = JSON.parse(savedSpace);
+            setUserSpace(parsedSpace);
+
+            // Verify the space is still valid
+            const spaceVerified = await verifyUserSpace(parsedSpace);
+            if (spaceVerified) {
+              setIsInitialized(true);
+            }
+          } catch (err) {
+            console.error("Error parsing saved space:", err);
+          }
+        }
+
+        setIsLoadingInitial(false);
+      } catch (err) {
+        console.error("Error initializing agent:", err);
+        setIsLoadingInitial(false);
+        setError("Failed to initialize Storacha client");
       }
     };
 
-    // Start background initialization without blocking the UI
-    initializeInBackground();
-  }, [isBrowser, initAttempted]);
+    initializeAgent();
+  }, [isBrowser]);
 
-  // Initialize storage via API with a timeout
-  const initializeStorage = async (): Promise<boolean> => {
-    if (isInitialized) return true;
+  // Load assets from localStorage
+  const loadAssetsFromStorage = () => {
+    if (!isBrowser) return;
 
     try {
-      const email = process.env.NEXT_PUBLIC_STORACHA_EMAIL;
-      const spaceName = process.env.NEXT_PUBLIC_STORACHA_SPACE_NAME;
-
-      if (!email || !spaceName) {
-        console.warn(
-          "Storacha configuration not found in environment variables."
-        );
-        return false;
+      const savedAssets = localStorage.getItem("filecoin_assets");
+      if (savedAssets) {
+        const parsedAssets = JSON.parse(savedAssets);
+        setStoredAssets(parsedAssets);
+        console.log("Loaded stored assets from localStorage");
+      } else {
+        setStoredAssets([]);
       }
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error loading stored assets:", err);
+      setStoredAssets([]);
+      setIsLoading(false);
+    }
+  };
 
-      console.log("Initializing with email:", email, "and space:", spaceName);
-
-      const response = await fetch("/api/storage/initialize", {
+  // Verify a user space is still valid
+  const verifyUserSpace = async (space: UserSpace): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/storage/verify-space", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, spaceName }),
+        body: JSON.stringify({
+          spaceDid: space.spaceDid,
+          email: space.email,
+        }),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        console.warn(
-          "Initialization warning:",
-          data.message || "Failed to initialize storage."
-        );
-        return false;
-      }
-
-      setSpaceDid(data.spaceDid || "");
-      setIsInitialized(true);
-      console.log(
-        "Storage initialized successfully with spaceDid:",
-        data.spaceDid
-      );
-      return true;
+      return data.success === true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.warn(`Initialization warning: ${errorMessage}`);
+      console.error("Error verifying user space:", err);
       return false;
     }
   };
@@ -291,52 +234,178 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
     }
   };
 
+  // Check login status
+  const checkLoginStatus = async (): Promise<boolean> => {
+    if (!isBrowser) return false;
+
+    try {
+      const response = await fetch("/api/storage/login-status", {
+        method: "GET",
+      });
+
+      const data = await response.json();
+      return data.isLoggedIn === true;
+    } catch (err) {
+      console.error("Error checking login status:", err);
+      return false;
+    }
+  };
+
+  // Login with email
+  const loginWithEmail = async (email: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log(`Attempting to login with email: ${email}`);
+      const response = await fetch("/api/storage/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Failed to login.");
+        return false;
+      }
+
+      console.log("Login successful, checking for existing spaces...");
+      // After successful login, check for existing spaces associated with this email
+      try {
+        console.log(`Fetching spaces for ${email}...`);
+        const spacesResponse = await fetch("/api/storage/list-spaces", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!spacesResponse.ok) {
+          const errorData = await spacesResponse.json();
+          console.error("Error from list-spaces API:", errorData);
+          throw new Error(errorData.message || "Failed to list spaces");
+        }
+
+        const spacesData = await spacesResponse.json();
+        console.log("Spaces API response:", spacesData);
+
+        if (
+          spacesData.success &&
+          spacesData.spaces &&
+          spacesData.spaces.length > 0
+        ) {
+          console.log(
+            `Found ${spacesData.spaces.length} spaces:`,
+            spacesData.spaces
+          );
+          // Use the first space by default
+          const space = spacesData.spaces[0];
+          console.log(`Using space: ${space.name} (${space.did})`);
+
+          setUserSpace({
+            spaceDid: space.did,
+            spaceName: space.name,
+            email: email,
+          });
+          setIsInitialized(true);
+
+          // Save space to localStorage
+          if (isBrowser) {
+            localStorage.setItem(
+              "user_space",
+              JSON.stringify({
+                spaceDid: space.did,
+                spaceName: space.name,
+                email: email,
+              })
+            );
+          }
+
+          // Load assets for this space
+          await refreshAssets();
+        } else {
+          console.log("No spaces found for this email");
+        }
+      } catch (err) {
+        console.error("Error checking for existing spaces:", err);
+        // Continue with login process even if space check fails
+      }
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(`Failed to login: ${errorMessage}`);
+      console.error("Error logging in:", err);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Create a user space
+  const createUserSpace = async (
+    email: string,
+    spaceName: string
+  ): Promise<UserSpace | null> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/storage/create-space", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, spaceName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Failed to create space.");
+        return null;
+      }
+
+      const newSpace: UserSpace = {
+        spaceDid: data.spaceDid,
+        spaceName: data.spaceName,
+        email: data.email,
+      };
+
+      setUserSpace(newSpace);
+      setIsInitialized(true);
+
+      // Save space to localStorage
+      if (isBrowser) {
+        localStorage.setItem("user_space", JSON.stringify(newSpace));
+      }
+
+      return newSpace;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(`Failed to create space: ${errorMessage}`);
+      console.error("Error creating space:", err);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Upload a single file
   const uploadFile = async (
     file: File,
     metadata: AssetMetadata = {}
   ): Promise<StorageResult | null> => {
-    // Ensure storage is initialized
-    if (!isInitialized) {
-      const initialized = await initializeStorage();
-      if (!initialized) {
-        // Even if initialization fails, create a mock successful upload
-        // This allows the UI to remain functional for demo purposes
-        const mockCid = `mock-cid-${Date.now()}`;
-        const mockUrl = `https://example.com/ipfs/${mockCid}`;
-
-        const newAsset: FilecoinAsset = {
-          id: Date.now(),
-          cid: mockCid,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          url: mockUrl,
-          metadata: {
-            ...metadata,
-            title: metadata.title || file.name,
-            type: file.type.startsWith("image/")
-              ? "image"
-              : file.type.startsWith("audio/")
-              ? "audio"
-              : file.type.startsWith("video/")
-              ? "video"
-              : "document",
-          },
-          uploadedAt: new Date().toISOString(),
-        };
-
-        const updatedAssets = [...storedAssets, newAsset];
-        setStoredAssets(updatedAssets);
-        saveStoredAssets(updatedAssets);
-
-        console.log("Created mock upload result for offline/demo mode");
-        return {
-          cid: mockCid,
-          metadata: newAsset.metadata,
-          url: mockUrl,
-        };
-      }
+    if (!isInitialized || !userSpace) {
+      setError(
+        "Storacha client not initialized. Please create or connect to a space first."
+      );
+      return null;
     }
 
     setIsLoading(true);
@@ -346,11 +415,9 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
       // Create form data
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("email", process.env.NEXT_PUBLIC_STORACHA_EMAIL || "");
-      formData.append(
-        "spaceName",
-        process.env.NEXT_PUBLIC_STORACHA_SPACE_NAME || ""
-      );
+      formData.append("email", userSpace.email);
+      formData.append("spaceName", userSpace.spaceName);
+      formData.append("spaceDid", userSpace.spaceDid);
       formData.append("metadata", JSON.stringify(metadata));
 
       // Upload via API
@@ -405,8 +472,13 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
     files: File[],
     metadata: AssetMetadata = {}
   ): Promise<StorageResults | null> => {
-    // For simplicity, we'll upload files one by one
-    // In a real application, you might want to modify the API to handle multiple files
+    if (!isInitialized || !userSpace) {
+      setError(
+        "Storacha client not initialized. Please create or connect to a space first."
+      );
+      return null;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -441,12 +513,11 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
 
   // Verify an asset exists on IPFS
   const verifyAsset = async (asset: FilecoinAsset): Promise<boolean> => {
-    try {
-      // For demo assets with mock CIDs, return true
-      if (asset.cid.startsWith("mock-cid-")) {
-        return true;
-      }
+    if (!isInitialized || !userSpace) {
+      return false;
+    }
 
+    try {
       const response = await fetch("/api/storage/verify", {
         method: "POST",
         headers: {
@@ -455,6 +526,7 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
         body: JSON.stringify({
           cid: asset.cid,
           filename: asset.name,
+          spaceDid: userSpace.spaceDid,
         }),
       });
 
@@ -468,27 +540,272 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
 
   // Refresh assets list
   const refreshAssets = async (): Promise<void> => {
+    if (!isInitialized || !userSpace) {
+      console.log("Cannot refresh assets: Not initialized or no user space");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const savedAssets = localStorage.getItem("filecoin_assets");
-      if (savedAssets) {
-        setStoredAssets(JSON.parse(savedAssets));
-        console.log("Refreshed stored assets from localStorage");
+      console.log(
+        `Refreshing assets for space: ${userSpace.spaceName} (${userSpace.spaceDid})`
+      );
+
+      // Reset cursor for new fetch
+      setCurrentCursor("");
+
+      // Using cursor-based pagination as per Storacha docs
+      let allAssets: FilecoinAsset[] = [];
+      let cursor = "";
+      let hasMore = true;
+
+      // Just get the first page for initial load
+      const response = await fetch("/api/storage/list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          spaceDid: userSpace.spaceDid,
+          email: userSpace.email,
+          cursor: "",
+          size: 25, // Get 25 items per page as recommended in docs
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch assets");
       }
+
+      const data = await response.json();
+
+      if (data.assets && Array.isArray(data.assets)) {
+        allAssets = data.assets;
+        // Store cursor for loadMoreAssets
+        setCurrentCursor(data.cursor || "");
+        console.log(
+          `Retrieved ${data.assets.length} assets from API, nextCursor: ${
+            data.cursor || "none"
+          }`
+        );
+      } else {
+        console.warn("No assets found or invalid response format");
+      }
+
+      console.log(`Retrieved total of ${allAssets.length} assets from API`);
+      setStoredAssets(allAssets);
+      saveStoredAssets(allAssets);
+      console.log("Assets refreshed successfully");
     } catch (err) {
       console.error("Error refreshing assets:", err);
+      setError(
+        `Failed to load assets: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      // Fall back to localStorage
+      loadAssetsFromStorage();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load more assets using the current cursor
+  const loadMoreAssets = async (): Promise<boolean> => {
+    if (!isInitialized || !userSpace || !currentCursor) {
+      console.log(
+        "Cannot load more assets: Not initialized, no user space, or no cursor"
+      );
+      return false;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log(
+        `Loading more assets for space: ${userSpace.spaceName} (${userSpace.spaceDid}) with cursor: ${currentCursor}`
+      );
+
+      const response = await fetch("/api/storage/list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          spaceDid: userSpace.spaceDid,
+          email: userSpace.email,
+          cursor: currentCursor,
+          size: 25, // Get 25 items per page as recommended in docs
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch assets");
+      }
+
+      const data = await response.json();
+
+      if (data.assets && Array.isArray(data.assets)) {
+        console.log(`Retrieved ${data.assets.length} more assets from API`);
+
+        // Update cursor for next load
+        setCurrentCursor(data.cursor || "");
+
+        // Add new assets to the existing ones
+        const updatedAssets = [...storedAssets, ...data.assets];
+        setStoredAssets(updatedAssets);
+        saveStoredAssets(updatedAssets);
+
+        console.log("Additional assets loaded successfully");
+        return !!data.cursor; // Return true if there are more assets to load
+      } else {
+        console.warn("No additional assets found or invalid response format");
+        return false;
+      }
+    } catch (err) {
+      console.error("Error loading more assets:", err);
+      setError(
+        `Failed to load more assets: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Logout function
+  const logout = () => {
+    setIsInitialized(false);
+    setUserSpace(null);
+    localStorage.removeItem("user_space");
+  };
+
+  // Switch to a different space
+  const switchSpace = async (
+    spaceDid: string,
+    email: string,
+    spaceName: string
+  ): Promise<boolean> => {
+    if (!spaceDid || !email || !spaceName) {
+      setError("Space information is incomplete");
+      return false;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log(`Switching to space: ${spaceName} (${spaceDid})`);
+
+      // Use the switch-space API endpoint
+      const response = await fetch("/api/storage/switch-space", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          spaceDid,
+          email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to switch space");
+      }
+
+      // Update state with the new space
+      const newSpace: UserSpace = {
+        spaceDid,
+        spaceName,
+        email,
+      };
+
+      setUserSpace(newSpace);
+      setIsInitialized(true);
+
+      // Save to localStorage
+      if (isBrowser) {
+        localStorage.setItem("user_space", JSON.stringify(newSpace));
+      }
+
+      // Load assets for the new space
+      await refreshAssets();
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(`Failed to switch space: ${errorMessage}`);
+      console.error("Error switching space:", err);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add the implementation for getAvailableSpaces
+  const getAvailableSpaces = async (
+    email: string,
+    cursor: string = ""
+  ): Promise<{
+    spaces: Array<{ did: string; name: string }>;
+    cursor?: string;
+  }> => {
+    if (!email) {
+      return { spaces: [] };
+    }
+
+    try {
+      const response = await fetch("/api/storage/list-spaces", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          cursor,
+          size: 25,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch spaces");
+      }
+
+      const data = await response.json();
+      if (data.success && data.spaces && Array.isArray(data.spaces)) {
+        return {
+          spaces: data.spaces,
+          cursor: data.cursor,
+        };
+      }
+      return { spaces: [] };
+    } catch (err) {
+      console.error("Error fetching spaces:", err);
+      return { spaces: [] };
     }
   };
 
   // Context value
   const value: FilecoinContextType = {
     isInitialized,
-    isLoading,
+    isLoading: isLoading || isLoadingInitial,
     error,
+    userSpace,
     storedAssets,
+    agentDid,
+    createUserSpace,
+    loginWithEmail,
     uploadFile,
     uploadFiles,
     verifyAsset,
     refreshAssets,
+    loadMoreAssets,
+    getAvailableSpaces,
+    checkLoginStatus,
+    logout,
+    switchSpace,
   };
 
   return (

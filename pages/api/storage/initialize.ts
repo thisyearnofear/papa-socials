@@ -1,59 +1,59 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { StorachaClient } from "../../../utils/storacha-client";
+import { create } from "@web3-storage/w3up-client";
 
 type ResponseData = {
   success: boolean;
   message?: string;
-  email?: string;
-  spaceName?: string;
-  spaceDid?: string;
+  version?: string;
+  agentDid?: string;
+  isLoggedIn?: boolean;
+  hasAccounts?: boolean;
+  spaceCount?: number;
 };
 
 /**
- * API endpoint to initialize Storacha client and space
- * POST /api/storage/initialize
+ * API endpoint to initialize and get info about Storacha client
+ * GET /api/storage/initialize
  *
- * Request body:
- * {
- *   email: string; // email for authentication
- *   spaceName: string; // name for the space
- * }
+ * This endpoint provides information about the Storacha client
+ * and the user's current state without modifying anything
  */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  // Only allow POST method
-  if (req.method !== "POST") {
+  // Only allow GET method
+  if (req.method !== "GET") {
     return res
       .status(405)
       .json({ success: false, message: "Method not allowed" });
   }
 
   try {
-    // Get email and spaceName from environment variables
-    const email = process.env.NEXT_PUBLIC_STORACHA_EMAIL;
-    const spaceName = process.env.NEXT_PUBLIC_STORACHA_SPACE_NAME;
+    // Create client to get version info
+    const client = await create();
+    const agentDid = client.agent.did();
 
-    if (!email || !spaceName) {
-      return res.status(400).json({
-        success: false,
-        message: "Email or spaceName not provided in environment variables",
-      });
+    // Check if user has accounts (is logged in)
+    const accounts = await client.accounts();
+    const hasAccounts = accounts && Object.keys(accounts).length > 0;
+
+    // Check for spaces if logged in
+    let spaceCount = 0;
+    if (hasAccounts) {
+      const spaces = await client.spaces();
+      spaceCount = spaces.length;
     }
 
-    // Initialize Storacha client
-    const client = new StorachaClient(email, spaceName);
-    await client.init();
-
-    const spaceDid = client.getSpaceDid();
-
-    // Return success
+    // Return client info
     return res.status(200).json({
       success: true,
-      email,
-      spaceName,
-      spaceDid,
+      message: "Storacha client info retrieved successfully",
+      version: "1.0.0", // You can get this from package.json or client if available
+      agentDid,
+      isLoggedIn: hasAccounts,
+      hasAccounts,
+      spaceCount,
     });
   } catch (error) {
     console.error("Error initializing storage:", error);
