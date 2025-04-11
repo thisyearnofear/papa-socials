@@ -220,6 +220,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
               width={250}
               height={180}
               style={{ objectFit: "cover", height: "100%", width: "100%" }}
+              contentType="image"
             />
           </div>
         );
@@ -232,6 +233,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                 alt="Audio file"
                 width={80}
                 height={80}
+                contentType="audio"
               />
             </div>
           </div>
@@ -245,6 +247,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                 alt="Video file"
                 width={80}
                 height={80}
+                contentType="video"
               />
             </div>
           </div>
@@ -258,6 +261,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                 alt="Document file"
                 width={80}
                 height={80}
+                contentType="document"
               />
             </div>
           </div>
@@ -281,27 +285,91 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                 maxHeight: "400px",
                 borderRadius: "8px",
               }}
+              contentType="image"
             />
           </div>
         );
       case "audio":
         return (
           <div className="filecoin-modal-preview">
-            <audio controls src={`https://w3s.link/ipfs/${asset.cid}`}>
-              Your browser does not support the audio element.
-            </audio>
+            <div className="audio-player-wrapper">
+              <audio
+                controls
+                src={`https://w3s.link/ipfs/${asset.cid}`}
+                onError={(e) => {
+                  console.log(
+                    "Audio failed to load, trying alternative gateway"
+                  );
+                  const audio = e.currentTarget;
+                  if (audio.src.includes("w3s.link")) {
+                    audio.src = `https://ipfs.io/ipfs/${asset.cid}`;
+                  } else if (audio.src.includes("ipfs.io")) {
+                    audio.src = `https://dweb.link/ipfs/${asset.cid}`;
+                  }
+                }}
+              >
+                Your browser does not support the audio element.
+              </audio>
+              <div className="audio-fallback">
+                <OptimizedImage
+                  src="/images/audio-icon.svg"
+                  alt="Audio file"
+                  width={80}
+                  height={80}
+                  contentType="audio"
+                />
+                <a
+                  href={`https://w3s.link/ipfs/${asset.cid}`}
+                  className="filecoin-download-button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download Audio
+                </a>
+              </div>
+            </div>
           </div>
         );
       case "video":
         return (
           <div className="filecoin-modal-preview">
-            <video
-              controls
-              width="100%"
-              src={`https://w3s.link/ipfs/${asset.cid}`}
-            >
-              Your browser does not support the video element.
-            </video>
+            <div className="video-player-wrapper">
+              <video
+                controls
+                width="100%"
+                src={`https://w3s.link/ipfs/${asset.cid}`}
+                onError={(e) => {
+                  console.log(
+                    "Video failed to load, trying alternative gateway"
+                  );
+                  const video = e.currentTarget;
+                  if (video.src.includes("w3s.link")) {
+                    video.src = `https://ipfs.io/ipfs/${asset.cid}`;
+                  } else if (video.src.includes("ipfs.io")) {
+                    video.src = `https://dweb.link/ipfs/${asset.cid}`;
+                  }
+                }}
+              >
+                Your browser does not support the video element.
+              </video>
+              <div className="video-fallback">
+                <OptimizedImage
+                  src="/images/video-icon.svg"
+                  alt="Video file"
+                  width={80}
+                  height={80}
+                  contentType="video"
+                />
+                <a
+                  href={`https://w3s.link/ipfs/${asset.cid}`}
+                  className="filecoin-download-button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Download Video
+                </a>
+              </div>
+            </div>
           </div>
         );
       default:
@@ -313,6 +381,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                 alt="Document file"
                 width={80}
                 height={80}
+                contentType="document"
               />
               <a
                 href={`https://w3s.link/ipfs/${asset.cid}`}
@@ -371,7 +440,18 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
         </div>
       )}
 
-      {error && <div className="filecoin-message error">Error: {error}</div>}
+      {error && (
+        <div className="filecoin-message error">
+          <p>
+            <strong>Connection Issue:</strong> {error}
+          </p>
+          {/* eslint-disable-next-line react/no-unescaped-entities */}
+          <p className="error-hint">
+            Do not worry - you can still browse content and interact with the
+            catalogue. New uploads will be stored locally.
+          </p>
+        </div>
+      )}
 
       {/* Content Area - Responsive mobile design */}
       <div className="filecoin-content">
@@ -387,9 +467,20 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
             <h2 className="section-title">Artist Catalogue</h2>
 
             {loading ? (
-              <div className="filecoin-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading content...</p>
+              <div className="filecoin-loading-grid">
+                {/* Skeleton loaders instead of spinner */}
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="filecoin-skeleton-card">
+                    <div className="filecoin-skeleton-image"></div>
+                    <div className="filecoin-skeleton-content">
+                      <div className="filecoin-skeleton-title"></div>
+                      <div className="filecoin-skeleton-text"></div>
+                    </div>
+                  </div>
+                ))}
+                <div className="filecoin-loading-message">
+                  Loading catalogue items...
+                </div>
               </div>
             ) : assets && assets.length > 0 ? (
               <div className="filecoin-assets-grid">
@@ -513,7 +604,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
                   className="filecoin-textarea"
                   value={assetMetadata.description}
                   onChange={handleMetadataChange}
-                  placeholder="What's special about this content?"
+                  placeholder="What is special about this content?"
                 />
               </div>
 
@@ -721,6 +812,152 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
 
       <style jsx global>{`
         /* Mobile optimizations - see filecoin.css for full styles */
+
+        /* Skeleton loaders for content */
+        .filecoin-loading-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 1.5rem;
+          margin-top: 1.5rem;
+          position: relative;
+        }
+
+        .filecoin-skeleton-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          overflow: hidden;
+          height: 280px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .filecoin-skeleton-image {
+          height: 180px;
+          background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.03) 0%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.03) 100%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
+
+        .filecoin-skeleton-content {
+          padding: 1rem;
+        }
+
+        .filecoin-skeleton-title {
+          width: 80%;
+          height: 18px;
+          margin-bottom: 15px;
+          background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.03) 0%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.03) 100%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+          border-radius: 4px;
+        }
+
+        .filecoin-skeleton-text {
+          width: 60%;
+          height: 12px;
+          background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.03) 0%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 255, 255, 0.03) 100%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+          border-radius: 4px;
+        }
+
+        /* Audio and Video player wrappers */
+        .audio-player-wrapper,
+        .video-player-wrapper {
+          position: relative;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .audio-fallback,
+        .video-fallback {
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+          border: 1px dashed rgba(255, 255, 255, 0.3);
+          border-radius: 8px;
+          margin-top: 10px;
+        }
+
+        audio:error + .audio-fallback,
+        video:error + .video-fallback {
+          display: flex;
+        }
+
+        .filecoin-download-button {
+          margin-top: 15px;
+          display: inline-block;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+          border-radius: 20px;
+          text-decoration: none;
+          font-size: 14px;
+          transition: all 0.2s ease;
+        }
+
+        .filecoin-download-button:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+
+        .filecoin-loading-message {
+          position: absolute;
+          bottom: -40px;
+          left: 0;
+          right: 0;
+          text-align: center;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.9rem;
+        }
+
+        .error-hint {
+          font-size: 0.9rem;
+          opacity: 0.8;
+          margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+          .filecoin-loading-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+          }
+
+          .filecoin-skeleton-card {
+            height: 220px;
+          }
+
+          .filecoin-skeleton-image {
+            height: 150px;
+          }
+        }
       `}</style>
     </div>
   );

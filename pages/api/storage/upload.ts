@@ -119,8 +119,10 @@ export default async function handler(
       let space: any = null;
       for (const s of spaces) {
         try {
-          const name = s.name;
-          if (name === spaceName) {
+          // Check if name is a property or method
+          const spaceNameValue =
+            typeof s.name === "function" ? s.name() : s.name;
+          if (spaceNameValue === spaceName) {
             space = s;
             console.log(`Found space: ${spaceName} (${space.did()})`);
             break;

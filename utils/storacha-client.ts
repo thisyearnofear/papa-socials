@@ -47,9 +47,9 @@ export class StorachaClient {
       // Try to find existing space with matching name
       for (const s of spaces) {
         try {
-          // Access name as a property, not a method
-          const name = s.name;
-          if (name === this.spaceName) {
+          // Check if name is a property or method
+          const spaceName = typeof s.name === "function" ? s.name() : s.name;
+          if (spaceName === this.spaceName) {
             this.space = s;
             this.spaceDid = this.space.did();
             console.log(
