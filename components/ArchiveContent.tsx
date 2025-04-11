@@ -20,16 +20,16 @@ interface AssetMetadata {
   creator: string;
   date: string;
   tags: string[];
-  type: string;
+  type: "image" | "audio" | "video" | "document";
 }
 
 interface UploadStatus {
+  status: "uploading" | "success" | "error";
   message: string;
-  status: "success" | "error" | "loading";
 }
 
-interface FilecoinArchiveContentProps {
-  onBackClick?: () => void;
+interface ArchiveContentProps {
+  onBackClick: () => void;
 }
 
 // Adapter function to convert FilecoinAsset to Asset
@@ -46,7 +46,9 @@ const convertToAsset = (fileAsset: FilecoinAsset): Asset => {
         fileAsset.uploadedAt ||
         new Date().toISOString(),
       tags: fileAsset.metadata.tags || [],
-      type: fileAsset.metadata.type || fileAsset.type || "document",
+      type: (fileAsset.metadata.type ||
+        fileAsset.type ||
+        "document") as AssetMetadata["type"],
     },
   };
 };
@@ -61,9 +63,7 @@ const convertToContextMetadata = (
   };
 };
 
-const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
-  onBackClick,
-}) => {
+const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
   // State management
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
@@ -81,7 +81,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tagsInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize Filecoin hook
+  // Initialize Archive hook
   const { storedAssets, isLoading, uploadFiles, error } = useFilecoin();
 
   // Derived state - convert FilecoinAssets to Assets
@@ -100,7 +100,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
 
       // Auto-detect file type based on first file
       const file = e.target.files[0];
-      let detectedType = "document";
+      let detectedType: AssetMetadata["type"] = "document";
 
       if (file.type.startsWith("image/")) {
         detectedType = "image";
@@ -161,8 +161,8 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
     }
 
     setUploadStatus({
-      message: "Uploading to Filecoin network...",
-      status: "loading",
+      message: "Uploading to archive...",
+      status: "uploading",
     });
 
     try {
@@ -170,7 +170,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
       await uploadAsset(fileArray, assetMetadata);
 
       setUploadStatus({
-        message: "Files uploaded successfully to Filecoin network!",
+        message: "Files uploaded successfully to archive!",
         status: "success",
       });
 
@@ -213,7 +213,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
     switch (asset.metadata.type) {
       case "image":
         return (
-          <div className="filecoin-asset-preview">
+          <div className="archive-asset-preview">
             <OptimizedImage
               src={`https://w3s.link/ipfs/${asset.cid}`}
               alt={asset.metadata.title || "Image asset"}
@@ -226,8 +226,8 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
         );
       case "audio":
         return (
-          <div className="filecoin-asset-preview">
-            <div className="filecoin-asset-icon">
+          <div className="archive-asset-preview">
+            <div className="archive-asset-icon">
               <OptimizedImage
                 src="/images/audio-icon.svg"
                 alt="Audio file"
@@ -240,8 +240,8 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
         );
       case "video":
         return (
-          <div className="filecoin-asset-preview">
-            <div className="filecoin-asset-icon">
+          <div className="archive-asset-preview">
+            <div className="archive-asset-icon">
               <OptimizedImage
                 src="/images/video-icon.svg"
                 alt="Video file"
@@ -254,8 +254,8 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
         );
       default:
         return (
-          <div className="filecoin-asset-preview">
-            <div className="filecoin-asset-icon">
+          <div className="archive-asset-preview">
+            <div className="archive-asset-icon">
               <OptimizedImage
                 src="/images/document-icon.svg"
                 alt="Document file"
@@ -399,41 +399,35 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
 
   // Return with mobile optimizations
   return (
-    <div className="content-wrapper">
+    <div className="archive-container">
+      {/* Header with back button */}
+      <div className="archive-header">
+        <h1 className="archive-title">Artist Catalogue</h1>
+        <button className="archive-back-button" onClick={onBackClick}>
+          Back
+        </button>
+      </div>
+
       {/* Tabs Navigation - Mobile-optimized */}
-      <div className="filecoin-tabs">
+      <div className="archive-tabs">
         <button
-          className={`filecoin-tab ${activeTab === "browse" ? "active" : ""}`}
+          className={`archive-tab ${activeTab === "browse" ? "active" : ""}`}
           onClick={() => setActiveTab("browse")}
-          aria-label="Browse Catalogue"
         >
-          <span className="tab-text">Browse</span>
-          <span className="tab-icon">🔍</span>
+          Browse
         </button>
         <button
-          className={`filecoin-tab ${activeTab === "upload" ? "active" : ""}`}
+          className={`archive-tab ${activeTab === "upload" ? "active" : ""}`}
           onClick={() => setActiveTab("upload")}
-          aria-label="Upload Assets"
         >
-          <span className="tab-text">Upload</span>
-          <span className="tab-icon">📤</span>
+          Upload
         </button>
-        {onBackClick && (
-          <button
-            className="filecoin-tab"
-            onClick={onBackClick}
-            aria-label="Back to Grid"
-          >
-            <span className="tab-text">Back</span>
-            <span className="tab-icon">↩️</span>
-          </button>
-        )}
       </div>
 
       {/* Status Messages */}
       {uploadStatus && (
-        <div className={`filecoin-message ${uploadStatus.status}`}>
-          {uploadStatus.status === "loading" && (
+        <div className={`archive-message ${uploadStatus.status}`}>
+          {uploadStatus.status === "uploading" && (
             <div className="loading-spinner"></div>
           )}
           {uploadStatus.message}
@@ -445,7 +439,6 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
           <p>
             <strong>Connection Issue:</strong> {error}
           </p>
-          {/* eslint-disable-next-line react/no-unescaped-entities */}
           <p className="error-hint">
             Do not worry - you can still browse content and interact with the
             catalogue. New uploads will be stored locally.
@@ -454,11 +447,11 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
       )}
 
       {/* Content Area - Responsive mobile design */}
-      <div className="filecoin-content">
+      <div className="archive-content">
         {/* Browse Assets */}
         {activeTab === "browse" && (
           <motion.div
-            className="filecoin-browse"
+            className="archive-browse"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -539,7 +532,7 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
         {/* Upload Assets - Simplified for user flow */}
         {activeTab === "upload" && (
           <motion.div
-            className="filecoin-upload"
+            className="archive-upload"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -555,158 +548,111 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
               </p>
             </div>
 
-            <form onSubmit={handleUpload} className="filecoin-upload-form">
-              <div className="filecoin-form-group">
-                <label htmlFor="file-upload">Select Files</label>
+            <form onSubmit={handleUpload} className="archive-upload-form">
+              <div className="archive-form-group">
+                <label className="archive-form-label">Files</label>
                 <input
                   type="file"
-                  id="file-upload"
-                  className="filecoin-file-input"
+                  multiple
                   onChange={handleFileSelect}
                   ref={fileInputRef}
-                  multiple
+                  className="archive-form-input"
                 />
-
-                {selectedFiles && selectedFiles.length > 0 && (
-                  <div className="filecoin-selected-files">
-                    <div>Selected {selectedFiles.length} file(s):</div>
-                    <ul>
-                      {Array.from(selectedFiles).map((file, index) => (
-                        <li key={index}>
-                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)}{" "}
-                          MB)
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
 
-              <div className="filecoin-form-group">
-                <label htmlFor="title">Title</label>
+              <div className="archive-form-group">
+                <label className="archive-form-label">Title</label>
                 <input
                   type="text"
-                  id="title"
                   name="title"
-                  className="filecoin-text-input"
                   value={assetMetadata.title}
                   onChange={handleMetadataChange}
-                  required
-                  placeholder="Enter a title for this content"
+                  className="archive-form-input"
                 />
               </div>
 
-              <div className="filecoin-form-group">
-                <label htmlFor="description">Description</label>
+              <div className="archive-form-group">
+                <label className="archive-form-label">Description</label>
                 <textarea
-                  id="description"
                   name="description"
-                  className="filecoin-textarea"
                   value={assetMetadata.description}
                   onChange={handleMetadataChange}
-                  placeholder="What is special about this content?"
+                  className="archive-form-input"
+                  rows={3}
                 />
               </div>
 
-              <div className="filecoin-form-row">
-                <div className="filecoin-form-group half">
-                  <label htmlFor="creator">Creator</label>
-                  <input
-                    type="text"
-                    id="creator"
-                    name="creator"
-                    className="filecoin-text-input"
-                    value={assetMetadata.creator}
-                    onChange={handleMetadataChange}
-                    placeholder="Who created this?"
-                  />
-                </div>
-
-                <div className="filecoin-form-group half">
-                  <label htmlFor="date">Date</label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    className="filecoin-text-input"
-                    value={assetMetadata.date}
-                    onChange={handleMetadataChange}
-                  />
-                </div>
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="type">Type</label>
-                <select
-                  id="type"
-                  name="type"
-                  className="filecoin-select"
-                  value={assetMetadata.type}
-                  onChange={handleMetadataChange}
-                >
-                  <option value="image">Image</option>
-                  <option value="audio">Audio</option>
-                  <option value="video">Video</option>
-                  <option value="document">Document</option>
-                </select>
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="tags">Tags (Press Enter to add)</label>
+              <div className="archive-form-group">
+                <label className="archive-form-label">Creator</label>
                 <input
                   type="text"
-                  id="tags"
-                  className="filecoin-text-input"
-                  onKeyDown={handleTagsSubmit}
-                  ref={tagsInputRef}
-                  placeholder="lyrics, live, unreleased, etc."
+                  name="creator"
+                  value={assetMetadata.creator}
+                  onChange={handleMetadataChange}
+                  className="archive-form-input"
                 />
+              </div>
 
-                {assetMetadata.tags.length > 0 && (
-                  <div className="filecoin-tags-container">
-                    {assetMetadata.tags.map((tag) => (
-                      <span key={tag} className="filecoin-tag">
-                        {tag}
-                        <button
-                          className="filecoin-tag-remove"
-                          onClick={() => handleRemoveTag(tag)}
-                          aria-label={`Remove tag ${tag}`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+              <div className="archive-form-group">
+                <label className="archive-form-label">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={assetMetadata.date}
+                  onChange={handleMetadataChange}
+                  className="archive-form-input"
+                />
+              </div>
+
+              <div className="archive-form-group">
+                <label className="archive-form-label">Tags</label>
+                <input
+                  type="text"
+                  ref={tagsInputRef}
+                  onKeyDown={handleTagsSubmit}
+                  placeholder="Type a tag and press Enter"
+                  className="archive-form-input"
+                />
+                <div className="archive-tags-container">
+                  {assetMetadata.tags.map((tag) => (
+                    <div key={tag} className="archive-tag">
+                      {tag}
+                      <button
+                        type="button"
+                        className="archive-tag-remove"
+                        onClick={() => handleRemoveTag(tag)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="archive-upload-button"
+                disabled={
+                  uploadStatus?.status === "uploading" ||
+                  !selectedFiles ||
+                  selectedFiles.length === 0
+                }
+              >
+                {uploadStatus?.status === "uploading" ? (
+                  <>
+                    <span className="button-spinner"></span>
+                    Uploading...
+                  </>
+                ) : (
+                  "Upload"
                 )}
-              </div>
+              </button>
 
-              <div className="filecoin-form-actions">
-                <button
-                  type="button"
-                  className="filecoin-cancel-button"
-                  onClick={() => setActiveTab("browse")}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="filecoin-upload-button"
-                  disabled={
-                    uploadStatus?.status === "loading" ||
-                    !selectedFiles ||
-                    selectedFiles.length === 0
-                  }
-                >
-                  {uploadStatus?.status === "loading" ? (
-                    <>
-                      <span className="button-spinner"></span>
-                      <span>Uploading...</span>
-                    </>
-                  ) : (
-                    "Add to Catalogue"
-                  )}
-                </button>
-              </div>
+              {uploadStatus && (
+                <div className={`archive-message ${uploadStatus.status}`}>
+                  {uploadStatus.message}
+                </div>
+              )}
             </form>
           </motion.div>
         )}
@@ -716,101 +662,224 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
       <AnimatePresence>
         {selectedAsset && (
           <motion.div
-            className="filecoin-modal-overlay"
+            className="archive-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleCloseModal}
-            key="modal"
           >
             <motion.div
-              className="filecoin-modal-content"
-              initial={{ scale: 0.95, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.95, y: 20, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              onClick={(e) => e.stopPropagation()}
+              className="archive-modal-content"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
             >
-              <button
-                className="filecoin-modal-close"
-                onClick={handleCloseModal}
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-
-              <h2 className="filecoin-modal-title">
-                {selectedAsset.metadata.title || "Untitled"}
-              </h2>
-
-              <div className="filecoin-modal-body">
-                {renderAssetDetails(selectedAsset)}
-
-                <div className="filecoin-modal-details">
-                  {selectedAsset.metadata.description && (
-                    <div className="filecoin-detail-item">
-                      <h4>Description</h4>
-                      <p>{selectedAsset.metadata.description}</p>
-                    </div>
-                  )}
-
-                  {selectedAsset.metadata.creator && (
-                    <div className="filecoin-detail-item">
-                      <h4>Creator</h4>
-                      <p>{selectedAsset.metadata.creator}</p>
-                    </div>
-                  )}
-
-                  <div className="filecoin-detail-item">
-                    <h4>Created</h4>
-                    <p>
-                      {new Date(
-                        selectedAsset.metadata.date
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  {selectedAsset.metadata.tags &&
-                    selectedAsset.metadata.tags.length > 0 && (
-                      <div className="filecoin-detail-item">
-                        <h4>Tags</h4>
-                        <div className="filecoin-tags">
-                          {selectedAsset.metadata.tags.map((tag: string) => (
-                            <span key={tag} className="filecoin-tag">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  <div className="filecoin-detail-item">
-                    <div className="filecoin-detail-buttons">
-                      <a
-                        href={`https://w3s.link/ipfs/${selectedAsset.cid}`}
-                        className="filecoin-ipfs-link"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <span>View Original</span>
-                        <span>↗</span>
-                      </a>
-                      <button
-                        className="filecoin-action-button"
-                        onClick={handleCloseModal}
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <div className="archive-modal-header">
+                <h2 className="archive-modal-title">
+                  {selectedAsset.metadata.title}
+                </h2>
+                <button
+                  className="archive-modal-close"
+                  onClick={handleCloseModal}
+                >
+                  ×
+                </button>
               </div>
+              {renderAssetDetails(selectedAsset)}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <style jsx global>{`
+      <style jsx>{`
+        .archive-container {
+          padding: 20px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .archive-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .archive-title {
+          font-size: 24px;
+          font-weight: bold;
+          color: #333;
+        }
+
+        .archive-back-button {
+          padding: 8px 16px;
+          background: #333;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .archive-back-button:hover {
+          background: #444;
+        }
+
+        .archive-tabs {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .archive-tab {
+          padding: 8px 16px;
+          background: #f5f5f5;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .archive-tab.active {
+          background: #333;
+          color: white;
+        }
+
+        .archive-tab:hover {
+          background: #e0e0e0;
+        }
+
+        .archive-content {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .archive-browse,
+        .archive-upload {
+          flex: 1;
+        }
+
+        .section-title {
+          font-size: 20px;
+          font-weight: bold;
+          margin-bottom: 10px;
+        }
+
+        .upload-intro {
+          margin-bottom: 20px;
+        }
+
+        .archive-upload-form {
+          margin-top: 20px;
+          padding: 20px;
+          background: #f5f5f5;
+          border-radius: 8px;
+        }
+
+        .archive-form-group {
+          margin-bottom: 15px;
+        }
+
+        .archive-form-label {
+          display: block;
+          margin-bottom: 5px;
+          font-weight: bold;
+        }
+
+        .archive-form-input {
+          width: 100%;
+          padding: 8px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+
+        .archive-tags-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          margin-top: 5px;
+        }
+
+        .archive-tag {
+          background: #333;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .archive-tag-remove {
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+        }
+
+        .archive-upload-button {
+          background: #333;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-top: 10px;
+        }
+
+        .archive-upload-button:disabled {
+          background: #999;
+          cursor: not-allowed;
+        }
+
+        .archive-message {
+          margin-top: 10px;
+          padding: 10px;
+          border-radius: 4px;
+        }
+
+        .archive-message.success {
+          background: #d4edda;
+          color: #155724;
+        }
+
+        .archive-message.error {
+          background: #f8d7da;
+          color: #721c24;
+        }
+
+        .archive-message.uploading {
+          background: #cce5ff;
+          color: #004085;
+        }
+
+        .loading-spinner {
+          border: 4px solid rgba(0, 0, 0, 0.1);
+          border-left-color: #333;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          animation: spin 1s linear infinite;
+          margin-right: 10px;
+        }
+
+        .button-spinner {
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-left-color: white;
+          border-radius: 50%;
+          width: 16px;
+          height: 16px;
+          animation: spin 1s linear infinite;
+          margin-right: 8px;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         /* Mobile optimizations - see filecoin.css for full styles */
 
         /* Skeleton loaders for content */
@@ -919,25 +988,6 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
           transform: translateY(-2px);
         }
 
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-
-        .filecoin-loading-message {
-          position: absolute;
-          bottom: -40px;
-          left: 0;
-          right: 0;
-          text-align: center;
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 0.9rem;
-        }
-
         .error-hint {
           font-size: 0.9rem;
           opacity: 0.8;
@@ -963,4 +1013,4 @@ const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
   );
 };
 
-export default FilecoinArchiveContent;
+export default ArchiveContent;

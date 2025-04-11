@@ -17,28 +17,25 @@ const archiveIcons = [
   { icon: "🎵", delay: 0.3 },
 ];
 
-// Dynamically import FilecoinProvider with client-side only rendering
-const FilecoinProvider = dynamic(
+// Dynamically import ArchiveProvider with client-side only rendering
+const ArchiveProvider = dynamic(
   () =>
     import("../contexts/filecoin-context").then((mod) => mod.FilecoinProvider),
   { ssr: false }
 );
 
-// Dynamically import FilecoinArchiveContent with client-side only rendering
-const FilecoinArchiveContent = dynamic(
-  () => import("../components/FilecoinArchiveContent"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="loading-container archive-preload">
-        <div className="loading-spinner"></div>
-        <p>Preparing catalogue...</p>
-      </div>
-    ),
-  }
-);
+// Dynamically import ArchiveContent with client-side only rendering
+const ArchiveContent = dynamic(() => import("../components/ArchiveContent"), {
+  ssr: false,
+  loading: () => (
+    <div className="loading-container archive-preload">
+      <div className="loading-spinner"></div>
+      <p>Preparing catalogue...</p>
+    </div>
+  ),
+});
 
-const FilecoinPage = () => {
+const ArchivePage = () => {
   // Make sure we're in the browser before rendering
   const [isMounted, setIsMounted] = useState(false);
   const [showHint, setShowHint] = useState(true);
@@ -441,9 +438,9 @@ const FilecoinPage = () => {
                   WebkitOverflowScrolling: "touch",
                 }}
               >
-                <FilecoinProvider>
-                  <FilecoinArchiveContent onBackClick={handleBackToGrid} />
-                </FilecoinProvider>
+                <ArchiveProvider>
+                  <ArchiveContent onBackClick={handleBackToGrid} />
+                </ArchiveProvider>
               </div>
             </motion.div>
           )}
@@ -452,9 +449,9 @@ const FilecoinPage = () => {
         {/* Preload the archive content */}
         {isMounted && isContentPreloaded && stage !== "archive" && (
           <div className="preloaded-content" style={{ display: "none" }}>
-            <FilecoinProvider>
-              <FilecoinArchiveContent onBackClick={handleBackToGrid} />
-            </FilecoinProvider>
+            <ArchiveProvider>
+              <ArchiveContent onBackClick={handleBackToGrid} />
+            </ArchiveProvider>
           </div>
         )}
 
@@ -575,4 +572,4 @@ const FilecoinPage = () => {
   );
 };
 
-export default FilecoinPage;
+export default ArchivePage;

@@ -41,6 +41,19 @@ export function OptimizedImage({
     return match ? match[1] : null;
   }, []);
 
+  // Check if URL is an IPFS URL
+  const isIpfsUrl = useCallback((url: string): boolean => {
+    return (
+      !!url &&
+      (url.includes("/ipfs/") || url.startsWith("https://w3s.link/ipfs/"))
+    );
+  }, []);
+
+  // Check if URL is a local URL
+  const isLocalUrl = useCallback((url: string): boolean => {
+    return !!url && (url.startsWith("/") || url.startsWith("./"));
+  }, []);
+
   // Try loading from different gateways
   const tryNextGateway = useCallback(
     (originalUrl: string) => {
@@ -77,8 +90,14 @@ export function OptimizedImage({
     setLoadFailed(false);
     setGatewayAttempt(0);
 
-    // If this is an IPFS URL, set a timeout to handle potential gateway issues
-    if (src && src.includes("/ipfs/")) {
+    // Handle local URLs immediately
+    if (isLocalUrl(src)) {
+      setIsLoaded(true);
+      return;
+    }
+
+    // Only apply special handling to IPFS URLs
+    if (isIpfsUrl(src)) {
       const timeoutId = setTimeout(() => {
         if (!isLoaded) {
           console.log(`Load timeout for ${src}, attempting fallback`);
@@ -108,24 +127,31 @@ export function OptimizedImage({
     getDefaultFallback,
     isLoaded,
     tryNextGateway,
+    isIpfsUrl,
+    isLocalUrl,
   ]);
 
   // Handle error with the current gateway
   const handleImageError = useCallback(() => {
     console.log(`Error loading image from ${imgSrc}`);
-    // Try next gateway first
-    const nextGateway = tryNextGateway(src);
-    if (nextGateway && gatewayAttempt < IPFS_GATEWAYS.length - 1) {
-      console.log(`Trying alternative gateway: ${nextGateway}`);
-      setImgSrc(nextGateway);
-    } else {
-      // All gateways failed, use fallback
-      setLoadFailed(true);
-      if (fallbackSrc) {
-        setImgSrc(fallbackSrc);
-      } else {
-        setImgSrc(getDefaultFallback());
+
+    // Only try gateway switching for IPFS URLs
+    if (isIpfsUrl(src)) {
+      // Try next gateway first
+      const nextGateway = tryNextGateway(src);
+      if (nextGateway && gatewayAttempt < IPFS_GATEWAYS.length - 1) {
+        console.log(`Trying alternative gateway: ${nextGateway}`);
+        setImgSrc(nextGateway);
+        return;
       }
+    }
+
+    // All gateways failed or not an IPFS URL, use fallback
+    setLoadFailed(true);
+    if (fallbackSrc) {
+      setImgSrc(fallbackSrc);
+    } else {
+      setImgSrc(getDefaultFallback());
     }
   }, [
     gatewayAttempt,
@@ -134,10 +160,20 @@ export function OptimizedImage({
     fallbackSrc,
     src,
     tryNextGateway,
+    isIpfsUrl,
   ]);
 
   // Determine loading behavior - priority takes precedence over lazy loading
   const loadingBehavior = priority ? undefined : loading || "lazy";
+
+  // Only use placeholder for IPFS URLs to avoid rendering issues with regular images
+  const placeholderProps = isIpfsUrl(src)
+    ? {
+        placeholder: "blur" as const,
+        blurDataURL:
+          "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJiEkMj44Li4wMTQ/RDBCPUM3Ri9JVFVZW1xbN0RjamRYalFZW1f/2wBDARUXFyAeIBogHh4gIiA/NCs0Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz//wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=",
+      }
+    : {};
 
   if (asBackground) {
     return (
@@ -169,8 +205,7 @@ export function OptimizedImage({
             "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           }
           quality={quality}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJiEkMj44Li4wMTQ/RDBCPUM3Ri9JVFVZW1xbN0RjamRYalFZW1f/2wBDARUXFyAeIBogHh4gIiA/NCs0Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz//wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          {...placeholderProps}
         />
       </div>
     );
@@ -195,8 +230,7 @@ export function OptimizedImage({
         "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       }
       quality={quality}
-      placeholder="blur"
-      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJiEkMj44Li4wMTQ/RDBCPUM3Ri9JVFVZW1xbN0RjamRYalFZW1f/2wBDARUXFyAeIBogHh4gIiA/NCs0Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz//wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+      {...placeholderProps}
     />
   );
 }
