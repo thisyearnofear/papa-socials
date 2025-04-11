@@ -109,6 +109,36 @@ papa-next-pages/
 - ✅ Create verification system to ensure content authenticity
 - ✅ Build UI for browsing and verifying the decentralized archive
 
+### Artist Catalogue: Value for Fans & Band
+
+The Artist Catalogue provides value for both fans and band members through its decentralized approach to content preservation and sharing:
+
+#### For Fans:
+
+- **Authentic Content Access**: Fans can access exclusive, verified content directly from the band
+- **Historical Preservation**: Rare content and moments are preserved permanently on the decentralized web
+- **Deep Connection**: Explore a curated collection of behind-the-scenes content, unreleased tracks, and artist memorabilia
+- **Community Participation**: Fans become part of preserving the band's legacy for future generations
+- **Mobile-Friendly Experience**: Browse the catalogue on any device with a responsive, engaging interface
+
+#### For Band Members:
+
+- **Content Ownership**: Band maintains full control and ownership over their creative assets
+- **Permanent Storage**: No risk of losing important band history due to centralized service shutdowns
+- **Provable Authenticity**: Content is verifiable and tamper-resistant through Filecoin's CIDs
+- **Easy Management**: Simple upload process with rich metadata capabilities for organizing content
+- **Fan Engagement**: Create deeper connections with fans through sharing authentic band materials
+
+#### Current User Flow:
+
+1. **Discovery**: Users enter the Artist Catalogue through an engaging, animated intro screen
+2. **Browsing**: Fans can explore all band content in a visual grid format
+3. **Detailed View**: Clicking any item reveals full details with rich media viewing
+4. **Content Addition**: Band members can easily upload new content with comprehensive metadata
+5. **Verification**: All content is verified and stored permanently on Filecoin through Storacha Network
+
+This foundation for Phase 1 establishes the groundwork for Phase 2's AI integration, which will build on this authenticated content to create personalized fan interactions.
+
 ### Phase 2: AI Fan Engagement (Next Step)
 
 - Implement two AI agents that share data through Storacha:
