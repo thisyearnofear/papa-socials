@@ -75,7 +75,7 @@ const ClientNavigation = ({ router }) => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn about Filecoin
+          Storage by Filecoin
         </a>
       ) : (
         <a
@@ -127,8 +127,8 @@ const ClientNavigation = ({ router }) => {
                 Band
               </Link>
               <Link
-                href="/filecoin"
-                className={router.pathname === "/filecoin" ? "active" : ""}
+                href="/archive"
+                className={router.pathname === "/archive" ? "active" : ""}
               >
                 Archive
               </Link>
@@ -179,9 +179,9 @@ const ClientNavigation = ({ router }) => {
             Band
           </Link>
           <Link
-            href="/filecoin"
+            href="/archive"
             className={
-              router.pathname === "/filecoin"
+              router.pathname === "/archive"
                 ? "frame__demo frame__demo--current"
                 : "frame__demo"
             }
@@ -225,7 +225,7 @@ export default function Navigation() {
           <Link href="/band" className="frame__demo">
             Band
           </Link>
-          <Link href="/filecoin" className="frame__demo">
+          <Link href="/archive" className="frame__demo">
             Archive
           </Link>
         </nav>

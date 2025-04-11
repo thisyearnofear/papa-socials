@@ -27,7 +27,7 @@ const parseForm = async (req: NextApiRequest) => {
     (resolve, reject) => {
       const form = new formidable.IncomingForm({
         keepExtensions: true,
-        maxFileSize: 10 * 1024 * 1024, // 10MB limit
+        maxFileSize: 100 * 1024 * 1024, // 100MB limit
       });
 
       form.parse(
@@ -52,6 +52,7 @@ const parseForm = async (req: NextApiRequest) => {
  * Form data:
  * - email: Email used for authentication
  * - spaceName: Name of the space
+ * - spaceDid: DID of the space
  * - file: File to upload
  * - metadata: JSON string of metadata
  */
@@ -71,6 +72,7 @@ export default async function handler(
 
     const email = fields.email?.[0] || "";
     const spaceName = fields.spaceName?.[0] || "";
+    const spaceDid = fields.spaceDid?.[0] || "";
     const metadataStr = fields.metadata?.[0] || "{}";
 
     // Parse metadata
@@ -81,10 +83,10 @@ export default async function handler(
       console.warn("Failed to parse metadata JSON, using empty object");
     }
 
-    if (!email || !spaceName) {
+    if (!email || !spaceName || !spaceDid) {
       return res.status(400).json({
         success: false,
-        message: "Email and spaceName are required",
+        message: "Email, spaceName, and spaceDid are required",
       });
     }
 
@@ -99,36 +101,33 @@ export default async function handler(
 
     // Create Storacha client and authenticate
     console.log(`Creating Storacha client for ${email}...`);
-    // Using a typed client to avoid the any type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const client: any = await create();
+    const client = await create();
     console.log("Client created successfully");
 
     try {
       // Login with email
       console.log("Starting login process...");
-      await client.login(email);
+      if (!email || !email.includes("@")) {
+        throw new Error("Invalid email format. Must be a valid email address.");
+      }
+      await client.login(email as `${string}@${string}`);
       console.log("Login successful");
 
       // Get spaces
       const spaces = await client.spaces();
       console.log(`Found ${spaces.length} spaces`);
 
-      // Find matching space
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let space: any = null;
+      // Find matching space by DID
+      let space = null;
       for (const s of spaces) {
         try {
-          // Check if name is a property or method
-          const spaceNameValue =
-            typeof s.name === "function" ? s.name() : s.name;
-          if (spaceNameValue === spaceName) {
+          if (s.did() === spaceDid) {
             space = s;
-            console.log(`Found space: ${spaceName} (${space.did()})`);
+            console.log(`Found space with DID: ${spaceDid}`);
             break;
           }
         } catch (err) {
-          console.warn("Error checking space name:", err);
+          console.warn("Error checking space DID:", err);
         }
       }
 
