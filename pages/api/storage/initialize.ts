@@ -6,6 +6,7 @@ type ResponseData = {
   message?: string;
   email?: string;
   spaceName?: string;
+  spaceDid?: string;
 };
 
 /**
@@ -45,11 +46,14 @@ export default async function handler(
     const client = new StorachaClient(email, spaceName);
     await client.init();
 
+    const spaceDid = client.getSpaceDid();
+
     // Return success
     return res.status(200).json({
       success: true,
       email,
       spaceName,
+      spaceDid,
     });
   } catch (error) {
     console.error("Error initializing storage:", error);

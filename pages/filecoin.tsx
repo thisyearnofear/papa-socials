@@ -27,13 +27,22 @@ const FilecoinProvider = dynamic(
 // Dynamically import FilecoinArchiveContent with client-side only rendering
 const FilecoinArchiveContent = dynamic(
   () => import("../components/FilecoinArchiveContent"),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="loading-container archive-preload">
+        <div className="loading-spinner"></div>
+        <p>Preparing catalogue...</p>
+      </div>
+    ),
+  }
 );
 
 const FilecoinPage = () => {
   // Make sure we're in the browser before rendering
   const [isMounted, setIsMounted] = useState(false);
   const [showHint, setShowHint] = useState(true);
+  const [isContentPreloaded, setIsContentPreloaded] = useState(false);
   const titleControls = useAnimation();
   const iconsControls = useAnimation();
 
@@ -69,6 +78,13 @@ const FilecoinPage = () => {
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Preload the content after a short delay
+    const preloadTimer = setTimeout(() => {
+      setIsContentPreloaded(true);
+    }, 1000);
+
+    return () => clearTimeout(preloadTimer);
   }, []);
 
   // Floating animation for archive icons
@@ -343,7 +359,7 @@ const FilecoinPage = () => {
                 gap: "8px",
               }}
             >
-              <span>Dive In</span>
+              <span>View Catalogue</span>
               <motion.span
                 animate={{
                   x: [0, 5, 0],
@@ -433,6 +449,15 @@ const FilecoinPage = () => {
           )}
         </AnimatePresence>
 
+        {/* Preload the archive content */}
+        {isMounted && isContentPreloaded && stage !== "archive" && (
+          <div className="preloaded-content" style={{ display: "none" }}>
+            <FilecoinProvider>
+              <FilecoinArchiveContent onBackClick={handleBackToGrid} />
+            </FilecoinProvider>
+          </div>
+        )}
+
         {/* Loading state only if we're not showing animations yet */}
         {!isMounted && !stage && (
           <div className="loading-container">
@@ -472,6 +497,11 @@ const FilecoinPage = () => {
           justify-content: center;
           height: 50vh;
           color: white;
+        }
+
+        .archive-preload {
+          height: 200px;
+          margin-top: 50px;
         }
 
         .loading-spinner {
