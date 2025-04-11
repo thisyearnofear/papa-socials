@@ -16,12 +16,12 @@ interface Asset {
 }
 
 interface AssetMetadata {
-  title: string;
-  description: string;
-  creator: string;
-  date: string;
-  tags: string[];
-  type: "image" | "audio" | "video" | "document";
+  title?: string;
+  description?: string;
+  creator?: string;
+  date?: string;
+  tags?: string[];
+  type?: string;
   name?: string;
 }
 
@@ -117,6 +117,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     switchSpace,
     loadMoreAssets,
     getAvailableSpaces,
+    refreshAssets,
   } = useFilecoin();
 
   // Derived state - convert FilecoinAssets to Assets
@@ -172,6 +173,32 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userSpace]);
+
+  // Add a useEffect to automatically refresh assets when switching to browse tab
+  useEffect(() => {
+    const fetchAssets = async () => {
+      if (activeTab === "browse" && userSpace && isInitialized) {
+        setIsLoading(true);
+        try {
+          await refreshAssets();
+        } catch (error) {
+          console.error("Failed to refresh assets:", error);
+          // Show an error notification to the user
+          setUploadStatus({
+            message: "Failed to load your catalogue items",
+            status: "error",
+          });
+          // Clear the error after 3 seconds
+          setTimeout(() => setUploadStatus(null), 3000);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchAssets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, userSpace, isInitialized]);
 
   // Add a new useEffect to check for hasMoreContent after assets load
   useEffect(() => {
@@ -365,15 +392,13 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
 
   // Handle tags input
   const handleTagsSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagsInputRef.current) {
-      e.preventDefault();
-      const tag = tagsInputRef.current.value.trim();
-
-      if (tag && !assetMetadata.tags.includes(tag)) {
-        setAssetMetadata((prev) => ({
-          ...prev,
-          tags: [...prev.tags, tag],
-        }));
+    if (e.key === "Enter" && tagsInputRef.current?.value) {
+      const newTag = tagsInputRef.current.value.trim();
+      if (newTag && !(assetMetadata.tags || []).includes(newTag)) {
+        setAssetMetadata({
+          ...assetMetadata,
+          tags: [...(assetMetadata.tags || []), newTag],
+        });
         tagsInputRef.current.value = "";
       }
     }
@@ -381,10 +406,10 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
 
   // Remove a tag
   const handleRemoveTag = (tagToRemove: string) => {
-    setAssetMetadata((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
-    }));
+    setAssetMetadata({
+      ...assetMetadata,
+      tags: (assetMetadata.tags || []).filter((tag) => tag !== tagToRemove),
+    });
   };
 
   // Handle file upload
@@ -1177,7 +1202,66 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <h2 className="section-title">Artist Catalogue</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <h2 className="section-title">Artist Catalogue</h2>
+
+              {userSpace && (
+                <button
+                  onClick={async () => {
+                    setIsLoading(true);
+                    try {
+                      await refreshAssets();
+                      setUploadStatus({
+                        message: "Catalogue refreshed successfully",
+                        status: "success",
+                      });
+                      // Clear status after 3 seconds
+                      setTimeout(() => setUploadStatus(null), 3000);
+                    } catch (error) {
+                      console.error("Error refreshing catalogue:", error);
+                      setUploadStatus({
+                        message: "Failed to refresh catalogue",
+                        status: "error",
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  className="refresh-button"
+                  disabled={loading}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "8px 16px",
+                    background: "rgba(79, 209, 197, 0.2)",
+                    border: "1px solid rgba(79, 209, 197, 0.5)",
+                    borderRadius: "5px",
+                    color: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      Refreshing...
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: "16px" }}>🔄</span>
+                      Refresh Catalogue
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
 
             {loading ? (
               <div className="filecoin-loading-grid">
@@ -1221,7 +1305,9 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
                         {asset.metadata.type}
                       </p>
                       <p className="filecoin-asset-date">
-                        {new Date(asset.metadata.date).toLocaleDateString()}
+                        {asset.metadata.date
+                          ? new Date(asset.metadata.date).toLocaleDateString()
+                          : "Unknown date"}
                       </p>
                     </div>
                   </motion.div>
@@ -1267,12 +1353,32 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
                       </p>
                     </>
                   )}
-                  <button
-                    className="filecoin-action-button"
-                    onClick={() => setActiveTab("upload")}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      justifyContent: "center",
+                      marginTop: "20px",
+                    }}
                   >
-                    Add New Content
-                  </button>
+                    <button
+                      className="filecoin-action-button"
+                      onClick={() => setActiveTab("upload")}
+                    >
+                      Add New Content
+                    </button>
+                    <button
+                      className="filecoin-action-button"
+                      onClick={async () => {
+                        setIsLoading(true);
+                        await refreshAssets();
+                        setIsLoading(false);
+                      }}
+                      style={{ background: "rgba(79, 209, 197, 0.2)" }}
+                    >
+                      Refresh Listing
+                    </button>
+                  </div>
                 </motion.div>
               </div>
             )}
@@ -1477,7 +1583,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
                   className="archive-tags-container"
                   style={{ marginTop: "10px" }}
                 >
-                  {assetMetadata.tags.map((tag) => (
+                  {(assetMetadata.tags || []).map((tag) => (
                     <div key={tag} className="archive-tag">
                       {tag}
                       <button

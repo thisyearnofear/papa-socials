@@ -538,7 +538,7 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
     }
   };
 
-  // Refresh assets list
+  // Refresh assets list with retry logic
   const refreshAssets = async (): Promise<void> => {
     if (!isInitialized || !userSpace) {
       console.log("Cannot refresh assets: Not initialized or no user space");
@@ -556,41 +556,86 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
 
       // Using cursor-based pagination as per Storacha docs
       let allAssets: FilecoinAsset[] = [];
-      let cursor = "";
-      let hasMore = true;
 
-      // Just get the first page for initial load
-      const response = await fetch("/api/storage/list", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          spaceDid: userSpace.spaceDid,
-          email: userSpace.email,
-          cursor: "",
-          size: 25, // Get 25 items per page as recommended in docs
-        }),
-      });
+      // Implement retry logic with exponential backoff
+      const maxRetries = 3;
+      let retryCount = 0;
+      let retryDelay = 1000; // Start with 1 second delay
+      let success = false;
+      let lastError: Error | null = null;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch assets");
+      while (retryCount < maxRetries && !success) {
+        try {
+          // If this is a retry, log it
+          if (retryCount > 0) {
+            console.log(
+              `Retry attempt ${retryCount} after ${retryDelay}ms delay...`
+            );
+          }
+
+          // Make the API request
+          const response = await fetch("/api/storage/list", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              spaceDid: userSpace.spaceDid,
+              email: userSpace.email,
+              cursor: "",
+              size: 25, // Get 25 items per page as recommended in docs
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to fetch assets");
+          }
+
+          const data = await response.json();
+
+          if (data.assets && Array.isArray(data.assets)) {
+            allAssets = data.assets;
+            // Store cursor for loadMoreAssets
+            setCurrentCursor(data.cursor || "");
+            console.log(
+              `Retrieved ${data.assets.length} assets from API, nextCursor: ${
+                data.cursor || "none"
+              }`
+            );
+            success = true;
+          } else {
+            console.warn("No assets found or invalid response format");
+            // If we got a response but with no assets, still consider it a success
+            // This is better than retrying when there simply are no assets
+            success = true;
+            allAssets = [];
+          }
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+          console.warn(`Attempt ${retryCount + 1} failed:`, lastError);
+
+          // Only retry if it seems like a network error
+          if (
+            lastError.message.includes("network") ||
+            lastError.message.includes("timeout") ||
+            lastError.message.includes("fetch failed")
+          ) {
+            retryCount++;
+            if (retryCount < maxRetries) {
+              // Wait with exponential backoff before retrying
+              await new Promise((resolve) => setTimeout(resolve, retryDelay));
+              retryDelay *= 2; // Double the delay for next retry
+            }
+          } else {
+            // Not a network error, don't retry
+            break;
+          }
+        }
       }
 
-      const data = await response.json();
-
-      if (data.assets && Array.isArray(data.assets)) {
-        allAssets = data.assets;
-        // Store cursor for loadMoreAssets
-        setCurrentCursor(data.cursor || "");
-        console.log(
-          `Retrieved ${data.assets.length} assets from API, nextCursor: ${
-            data.cursor || "none"
-          }`
-        );
-      } else {
-        console.warn("No assets found or invalid response format");
+      if (!success && lastError) {
+        throw lastError;
       }
 
       console.log(`Retrieved total of ${allAssets.length} assets from API`);
@@ -611,7 +656,7 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
     }
   };
 
-  // Load more assets using the current cursor
+  // Load more assets using the current cursor with retry logic
   const loadMoreAssets = async (): Promise<boolean> => {
     if (!isInitialized || !userSpace || !currentCursor) {
       console.log(
@@ -626,25 +671,70 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
         `Loading more assets for space: ${userSpace.spaceName} (${userSpace.spaceDid}) with cursor: ${currentCursor}`
       );
 
-      const response = await fetch("/api/storage/list", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          spaceDid: userSpace.spaceDid,
-          email: userSpace.email,
-          cursor: currentCursor,
-          size: 25, // Get 25 items per page as recommended in docs
-        }),
-      });
+      // Implement retry logic with exponential backoff
+      const maxRetries = 3;
+      let retryCount = 0;
+      let retryDelay = 1000; // Start with 1 second delay
+      let success = false;
+      let lastError: Error | null = null;
+      let data: any = null;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch assets");
+      while (retryCount < maxRetries && !success) {
+        try {
+          // If this is a retry, log it
+          if (retryCount > 0) {
+            console.log(
+              `Retry attempt ${retryCount} after ${retryDelay}ms delay...`
+            );
+          }
+
+          const response = await fetch("/api/storage/list", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              spaceDid: userSpace.spaceDid,
+              email: userSpace.email,
+              cursor: currentCursor,
+              size: 25, // Get 25 items per page as recommended in docs
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to fetch assets");
+          }
+
+          data = await response.json();
+          success = true;
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+          console.warn(`Attempt ${retryCount + 1} failed:`, lastError);
+
+          // Only retry if it seems like a network error
+          if (
+            lastError.message.includes("network") ||
+            lastError.message.includes("timeout") ||
+            lastError.message.includes("fetch failed")
+          ) {
+            retryCount++;
+            if (retryCount < maxRetries) {
+              // Wait with exponential backoff before retrying
+              await new Promise((resolve) => setTimeout(resolve, retryDelay));
+              retryDelay *= 2; // Double the delay for next retry
+            }
+          } else {
+            // Not a network error, don't retry
+            break;
+          }
+        }
       }
 
-      const data = await response.json();
+      if (!success) {
+        if (lastError) throw lastError;
+        return false;
+      }
 
       if (data.assets && Array.isArray(data.assets)) {
         console.log(`Retrieved ${data.assets.length} more assets from API`);
