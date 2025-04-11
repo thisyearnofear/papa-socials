@@ -28,11 +28,8 @@ interface UploadStatus {
   status: "success" | "error" | "loading";
 }
 
-interface VerificationResults {
-  assetId: string;
-  cid: string;
-  status: "pending" | "verified" | "failed";
-  dateVerified?: string;
+interface FilecoinArchiveContentProps {
+  onBackClick?: () => void;
 }
 
 // Adapter function to convert FilecoinAsset to Asset
@@ -64,7 +61,9 @@ const convertToContextMetadata = (
   };
 };
 
-const FilecoinArchiveContent: React.FC = () => {
+const FilecoinArchiveContent: React.FC<FilecoinArchiveContentProps> = ({
+  onBackClick,
+}) => {
   // State management
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
@@ -78,16 +77,12 @@ const FilecoinArchiveContent: React.FC = () => {
     type: "image",
   });
   const [activeTab, setActiveTab] = useState<string>("browse");
-  const [verificationResults, setVerificationResults] = useState<
-    VerificationResults[] | null
-  >(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tagsInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Filecoin hook
-  const { storedAssets, isLoading, uploadFiles, verifyAsset, error } =
-    useFilecoin();
+  const { storedAssets, isLoading, uploadFiles, error } = useFilecoin();
 
   // Derived state - convert FilecoinAssets to Assets
   const assets = storedAssets.map(convertToAsset);
@@ -96,24 +91,6 @@ const FilecoinArchiveContent: React.FC = () => {
   // Adapter function for uploadAsset
   const uploadAsset = async (files: File[], metadata: AssetMetadata) => {
     return await uploadFiles(files, convertToContextMetadata(metadata));
-  };
-
-  // Adapter function for verifyAssets
-  const verifyAssets = async () => {
-    // Verify each asset and collect results
-    const results: VerificationResults[] = [];
-
-    for (const asset of storedAssets) {
-      const verified = await verifyAsset(asset);
-      results.push({
-        assetId: asset.id.toString(),
-        cid: asset.cid,
-        status: verified ? "verified" : "failed",
-        dateVerified: new Date().toISOString(),
-      });
-    }
-
-    return results;
   };
 
   // Handle file selection
@@ -214,31 +191,6 @@ const FilecoinArchiveContent: React.FC = () => {
     } catch (err) {
       setUploadStatus({
         message: `Error uploading files: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`,
-        status: "error",
-      });
-    }
-  };
-
-  // Handle asset verification
-  const handleVerify = async () => {
-    setVerificationResults(null);
-    setUploadStatus({
-      message: "Verifying assets on the Filecoin network...",
-      status: "loading",
-    });
-
-    try {
-      const results = await verifyAssets();
-      setVerificationResults(results);
-      setUploadStatus({
-        message: "Verification complete",
-        status: "success",
-      });
-    } catch (err) {
-      setUploadStatus({
-        message: `Error verifying assets: ${
           err instanceof Error ? err.message : "Unknown error"
         }`,
         status: "error",
@@ -376,28 +328,37 @@ const FilecoinArchiveContent: React.FC = () => {
     }
   };
 
+  // Return with mobile optimizations
   return (
     <div className="content-wrapper">
-      {/* Tabs Navigation */}
+      {/* Tabs Navigation - Mobile-optimized */}
       <div className="filecoin-tabs">
         <button
           className={`filecoin-tab ${activeTab === "browse" ? "active" : ""}`}
           onClick={() => setActiveTab("browse")}
+          aria-label="Browse Catalogue"
         >
-          Browse Archive
+          <span className="tab-text">Browse</span>
+          <span className="tab-icon">🔍</span>
         </button>
         <button
           className={`filecoin-tab ${activeTab === "upload" ? "active" : ""}`}
           onClick={() => setActiveTab("upload")}
+          aria-label="Upload Assets"
         >
-          Upload Assets
+          <span className="tab-text">Upload</span>
+          <span className="tab-icon">📤</span>
         </button>
-        <button
-          className={`filecoin-tab ${activeTab === "verify" ? "active" : ""}`}
-          onClick={() => setActiveTab("verify")}
-        >
-          Verify Storage
-        </button>
+        {onBackClick && (
+          <button
+            className="filecoin-tab"
+            onClick={onBackClick}
+            aria-label="Back to Grid"
+          >
+            <span className="tab-text">Back</span>
+            <span className="tab-icon">↩️</span>
+          </button>
+        )}
       </div>
 
       {/* Status Messages */}
@@ -412,7 +373,7 @@ const FilecoinArchiveContent: React.FC = () => {
 
       {error && <div className="filecoin-message error">Error: {error}</div>}
 
-      {/* Content Area */}
+      {/* Content Area - Responsive mobile design */}
       <div className="filecoin-content">
         {/* Browse Assets */}
         {activeTab === "browse" && (
@@ -421,13 +382,14 @@ const FilecoinArchiveContent: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <h2 className="section-title">Artist Archive</h2>
+            <h2 className="section-title">Artist Catalogue</h2>
 
             {loading ? (
               <div className="filecoin-loading">
                 <div className="loading-spinner"></div>
-                Loading assets from Filecoin...
+                <p>Loading content...</p>
               </div>
             ) : assets && assets.length > 0 ? (
               <div className="filecoin-assets-grid">
@@ -440,11 +402,12 @@ const FilecoinArchiveContent: React.FC = () => {
                       y: -5,
                       boxShadow: "0 5px 15px rgba(0, 0, 0, 0.3)",
                     }}
+                    whileTap={{ scale: 0.98 }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{
                       opacity: 1,
                       y: 0,
-                      transition: { delay: index * 0.05 },
+                      transition: { delay: index * 0.05, duration: 0.3 },
                     }}
                   >
                     {renderAssetPreview(asset)}
@@ -462,22 +425,44 @@ const FilecoinArchiveContent: React.FC = () => {
               </div>
             ) : (
               <div className="filecoin-empty">
-                No assets found in the archive. Upload some assets to get
-                started.
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="empty-icon">📦</div>
+                  <p>No items found in the catalogue.</p>
+                  <p>Add some items to get started.</p>
+                  <button
+                    className="filecoin-action-button"
+                    onClick={() => setActiveTab("upload")}
+                  >
+                    Add New Content
+                  </button>
+                </motion.div>
               </div>
             )}
           </motion.div>
         )}
 
-        {/* Upload Assets */}
+        {/* Upload Assets - Simplified for user flow */}
         {activeTab === "upload" && (
           <motion.div
             className="filecoin-upload"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <h2 className="section-title">Upload to Archive</h2>
+            <h2 className="section-title">Add to Catalogue</h2>
+
+            <div className="upload-intro">
+              <p>
+                Share your content with PAPA&apos;s fans by adding it to the
+                catalogue. Your content will be preserved on the decentralized
+                web for future generations.
+              </p>
+            </div>
 
             <form onSubmit={handleUpload} className="filecoin-upload-form">
               <div className="filecoin-form-group">
@@ -507,9 +492,62 @@ const FilecoinArchiveContent: React.FC = () => {
               </div>
 
               <div className="filecoin-form-group">
-                <label htmlFor="asset-type">Asset Type</label>
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  className="filecoin-text-input"
+                  value={assetMetadata.title}
+                  onChange={handleMetadataChange}
+                  required
+                  placeholder="Enter a title for this content"
+                />
+              </div>
+
+              <div className="filecoin-form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  className="filecoin-textarea"
+                  value={assetMetadata.description}
+                  onChange={handleMetadataChange}
+                  placeholder="What's special about this content?"
+                />
+              </div>
+
+              <div className="filecoin-form-row">
+                <div className="filecoin-form-group half">
+                  <label htmlFor="creator">Creator</label>
+                  <input
+                    type="text"
+                    id="creator"
+                    name="creator"
+                    className="filecoin-text-input"
+                    value={assetMetadata.creator}
+                    onChange={handleMetadataChange}
+                    placeholder="Who created this?"
+                  />
+                </div>
+
+                <div className="filecoin-form-group half">
+                  <label htmlFor="date">Date</label>
+                  <input
+                    type="date"
+                    id="date"
+                    name="date"
+                    className="filecoin-text-input"
+                    value={assetMetadata.date}
+                    onChange={handleMetadataChange}
+                  />
+                </div>
+              </div>
+
+              <div className="filecoin-form-group">
+                <label htmlFor="type">Type</label>
                 <select
-                  id="asset-type"
+                  id="type"
                   name="type"
                   className="filecoin-select"
                   value={assetMetadata.type}
@@ -523,83 +561,25 @@ const FilecoinArchiveContent: React.FC = () => {
               </div>
 
               <div className="filecoin-form-group">
-                <label htmlFor="asset-title">Title</label>
+                <label htmlFor="tags">Tags (Press Enter to add)</label>
                 <input
                   type="text"
-                  id="asset-title"
-                  name="title"
+                  id="tags"
                   className="filecoin-text-input"
-                  value={assetMetadata.title}
-                  onChange={handleMetadataChange}
-                  placeholder="Enter asset title"
-                  required
-                />
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="asset-description">Description</label>
-                <textarea
-                  id="asset-description"
-                  name="description"
-                  className="filecoin-textarea"
-                  value={assetMetadata.description}
-                  onChange={handleMetadataChange}
-                  placeholder="Enter asset description"
-                />
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="asset-creator">Creator</label>
-                <input
-                  type="text"
-                  id="asset-creator"
-                  name="creator"
-                  className="filecoin-text-input"
-                  value={assetMetadata.creator}
-                  onChange={handleMetadataChange}
-                  placeholder="Enter creator name"
-                />
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="asset-date">Creation Date</label>
-                <input
-                  type="date"
-                  id="asset-date"
-                  name="date"
-                  className="filecoin-text-input"
-                  value={assetMetadata.date}
-                  onChange={handleMetadataChange}
-                />
-              </div>
-
-              <div className="filecoin-form-group">
-                <label htmlFor="asset-tags">Tags (press Enter to add)</label>
-                <input
-                  type="text"
-                  id="asset-tags"
-                  className="filecoin-text-input"
-                  ref={tagsInputRef}
                   onKeyDown={handleTagsSubmit}
-                  placeholder="Add tags and press Enter"
+                  ref={tagsInputRef}
+                  placeholder="lyrics, live, unreleased, etc."
                 />
 
                 {assetMetadata.tags.length > 0 && (
-                  <div className="filecoin-tags">
+                  <div className="filecoin-tags-container">
                     {assetMetadata.tags.map((tag) => (
                       <span key={tag} className="filecoin-tag">
                         {tag}
                         <button
-                          type="button"
+                          className="filecoin-tag-remove"
                           onClick={() => handleRemoveTag(tag)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#00a4ff",
-                            cursor: "pointer",
-                            marginLeft: "4px",
-                            fontSize: "12px",
-                          }}
+                          aria-label={`Remove tag ${tag}`}
                         >
                           ×
                         </button>
@@ -609,103 +589,34 @@ const FilecoinArchiveContent: React.FC = () => {
                 )}
               </div>
 
-              <button
-                type="submit"
-                className="filecoin-upload-button"
-                disabled={
-                  !selectedFiles ||
-                  selectedFiles.length === 0 ||
-                  uploadStatus?.status === "loading"
-                }
-              >
-                {uploadStatus?.status === "loading"
-                  ? "Uploading..."
-                  : "Upload to Filecoin"}
-              </button>
-            </form>
-          </motion.div>
-        )}
-
-        {/* Verify Assets */}
-        {activeTab === "verify" && (
-          <motion.div
-            className="filecoin-verify"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <h2 className="section-title">Verify Storage Status</h2>
-
-            <p>
-              Verify the storage status of your assets on the Filecoin network
-              to ensure they are being properly stored and maintained.
-            </p>
-
-            <button
-              className="filecoin-verify-button"
-              onClick={handleVerify}
-              disabled={uploadStatus?.status === "loading"}
-            >
-              {uploadStatus?.status === "loading"
-                ? "Verifying..."
-                : "Check Storage Status"}
-            </button>
-
-            {verificationResults && (
-              <div className="filecoin-verification-results">
-                <h3>Verification Results</h3>
-
-                <div className="filecoin-table-wrapper">
-                  <table className="filecoin-table">
-                    <thead>
-                      <tr>
-                        <th>Asset</th>
-                        <th>CID</th>
-                        <th>Status</th>
-                        <th>Date Verified</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {verificationResults.map((result) => (
-                        <tr key={result.assetId}>
-                          <td>
-                            {assets.find((a) => a.cid === result.cid)?.metadata
-                              .title || "Unknown"}
-                          </td>
-                          <td className="filecoin-cid">
-                            {result.cid.substring(0, 10)}...
-                          </td>
-                          <td>
-                            <span className={`status-${result.status}`}>
-                              {result.status.charAt(0).toUpperCase() +
-                                result.status.slice(1)}
-                            </span>
-                          </td>
-                          <td>
-                            {result.dateVerified
-                              ? new Date(
-                                  result.dateVerified
-                                ).toLocaleDateString()
-                              : "-"}
-                          </td>
-                          <td>
-                            <a
-                              href={`https://w3s.link/ipfs/${result.cid}`}
-                              className="filecoin-view-link"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="filecoin-form-actions">
+                <button
+                  type="button"
+                  className="filecoin-cancel-button"
+                  onClick={() => setActiveTab("browse")}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="filecoin-upload-button"
+                  disabled={
+                    uploadStatus?.status === "loading" ||
+                    !selectedFiles ||
+                    selectedFiles.length === 0
+                  }
+                >
+                  {uploadStatus?.status === "loading" ? (
+                    <>
+                      <span className="button-spinner"></span>
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    "Add to Catalogue"
+                  )}
+                </button>
               </div>
-            )}
+            </form>
           </motion.div>
         )}
       </div>
@@ -719,17 +630,20 @@ const FilecoinArchiveContent: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleCloseModal}
+            key="modal"
           >
             <motion.div
               className="filecoin-modal-content"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 20, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 className="filecoin-modal-close"
                 onClick={handleCloseModal}
+                aria-label="Close modal"
               >
                 ×
               </button>
@@ -765,28 +679,6 @@ const FilecoinArchiveContent: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="filecoin-detail-item">
-                    <h4>Storage Details</h4>
-                    <p>
-                      Content ID (CID):{" "}
-                      <span className="filecoin-cid">{selectedAsset.cid}</span>
-                    </p>
-                    <p>
-                      Size:{" "}
-                      {selectedAsset.size
-                        ? `${(selectedAsset.size / 1024 / 1024).toFixed(2)} MB`
-                        : "Unknown"}
-                    </p>
-                    <a
-                      href={`https://w3s.link/ipfs/${selectedAsset.cid}`}
-                      className="filecoin-ipfs-link"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on IPFS Gateway
-                    </a>
-                  </div>
-
                   {selectedAsset.metadata.tags &&
                     selectedAsset.metadata.tags.length > 0 && (
                       <div className="filecoin-detail-item">
@@ -800,12 +692,36 @@ const FilecoinArchiveContent: React.FC = () => {
                         </div>
                       </div>
                     )}
+
+                  <div className="filecoin-detail-item">
+                    <div className="filecoin-detail-buttons">
+                      <a
+                        href={`https://w3s.link/ipfs/${selectedAsset.cid}`}
+                        className="filecoin-ipfs-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span>View Original</span>
+                        <span>↗</span>
+                      </a>
+                      <button
+                        className="filecoin-action-button"
+                        onClick={handleCloseModal}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style jsx global>{`
+        /* Mobile optimizations - see filecoin.css for full styles */
+      `}</style>
     </div>
   );
 };
