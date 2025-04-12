@@ -6,6 +6,7 @@ type ResponseData = {
   success: boolean;
   message: string;
   delegation?: Uint8Array;
+  delegationId?: string;
 };
 
 /**
@@ -137,6 +138,10 @@ export default async function handler(
       expiration,
     });
 
+    // Get the delegation ID (CID)
+    const delegationId = delegation.cid.toString();
+    console.log(`Delegation created with ID: ${delegationId}`);
+
     // Serialize the delegation
     const archive = await delegation.archive();
     if (!archive.ok) {
@@ -144,14 +149,15 @@ export default async function handler(
     }
 
     console.log(
-      `Delegation created successfully. Size: ${archive.ok.byteLength} bytes`
+      `Delegation serialized successfully. Size: ${archive.ok.byteLength} bytes`
     );
 
-    // Return the delegation as a base64 encoded string
+    // Return the delegation as a Uint8Array along with its ID
     return res.status(200).json({
       success: true,
       message: "Delegation created successfully",
       delegation: archive.ok,
+      delegationId: delegationId,
     });
   } catch (error) {
     console.error("Error creating delegation:", error);

@@ -1,11 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UploadStatus } from "./types";
+import { UserSpace } from "../../contexts/filecoin-context";
 
-interface UserSpace {
-  spaceDid: string;
-  spaceName: string;
-  email: string;
+// Add DID validation helper
+const isValidDID = (did: string): boolean => {
+  // Basic DID format validation: did:method:specific-id
+  const didRegex = /^did:[a-z0-9]+:[a-zA-Z0-9.%-]+$/;
+  return didRegex.test(did);
+};
+
+// Add expiration helper
+const calculateTimeRemaining = (expirationTimestamp: number): string => {
+  const now = Math.floor(Date.now() / 1000);
+  const remaining = expirationTimestamp - now;
+
+  if (remaining <= 0) return "Expired";
+
+  const hours = Math.floor(remaining / 3600);
+  const minutes = Math.floor((remaining % 3600) / 60);
+
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days} days remaining`;
+  }
+  return `${hours}h ${minutes}m remaining`;
+};
+
+interface DelegationInfo {
+  id: string;
+  audienceDid: string;
+  abilities: string[];
+  expirationTimestamp: number;
+  proof: string; // Base64 encoded delegation proof
 }
 
 interface DelegationManagerProps {
@@ -19,6 +46,8 @@ interface DelegationManagerProps {
 export const DelegationManager: React.FC<DelegationManagerProps> = ({
   userSpace,
   setUploadStatus,
+  onDelegationComplete,
+  onError,
 }) => {
   const [audienceDid, setAudienceDid] = useState<string>("");
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([
@@ -33,6 +62,9 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
   const [receivedDelegation, setReceivedDelegation] = useState<string>("");
   const [isImportingDelegation, setIsImportingDelegation] =
     useState<boolean>(false);
+  const [activeDelegations, setActiveDelegations] = useState<DelegationInfo[]>(
+    []
+  );
 
   // Get the current agent DID (client-side only)
   useEffect(() => {
@@ -53,17 +85,49 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
     fetchAgentDid();
   }, []);
 
-  // Function to create delegation
+  // Add validation before creating delegation
+  const validateDelegation = (): boolean => {
+    if (!userSpace) {
+      setUploadStatus({
+        message: "No active space selected",
+        status: "error",
+      });
+      return false;
+    }
+
+    if (!isValidDID(audienceDid)) {
+      setUploadStatus({
+        message:
+          "Invalid DID format. Must start with 'did:' followed by method and identifier",
+        status: "error",
+      });
+      return false;
+    }
+
+    if (selectedAbilities.length === 0) {
+      setUploadStatus({
+        message: "Please select at least one permission",
+        status: "error",
+      });
+      return false;
+    }
+
+    if (expirationHours < 1 || expirationHours > 8760) {
+      setUploadStatus({
+        message: "Expiration time must be between 1 hour and 1 year",
+        status: "error",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  // Modify handleCreateDelegation to use validation
   const handleCreateDelegation = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userSpace || !audienceDid || selectedAbilities.length === 0) {
-      setUploadStatus({
-        message: "Please fill in all required fields",
-        status: "error",
-      });
-      return;
-    }
+    if (!validateDelegation()) return;
 
     setIsCreatingDelegation(true);
     setUploadStatus({
@@ -78,8 +142,8 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          spaceDid: userSpace.spaceDid,
-          email: userSpace.email,
+          spaceDid: userSpace!.spaceDid,
+          email: userSpace!.email,
           audienceDid,
           abilities: selectedAbilities,
           expirationHours,
@@ -89,30 +153,45 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
       const data = await response.json();
 
       if (data.success && data.delegation) {
-        // Convert Uint8Array to base64 for easy copying
         const delegationBase64 = Buffer.from(data.delegation).toString(
           "base64"
         );
         setDelegationResult(delegationBase64);
 
+        // Add to active delegations
+        setActiveDelegations((prev) => [
+          ...prev,
+          {
+            id: data.delegationId,
+            audienceDid,
+            abilities: selectedAbilities,
+            expirationTimestamp:
+              Math.floor(Date.now() / 1000) + expirationHours * 3600,
+            proof: delegationBase64,
+          },
+        ]);
+
         setUploadStatus({
           message: "Delegation created successfully!",
           status: "success",
         });
+
+        if (onDelegationComplete) {
+          onDelegationComplete();
+        }
       } else {
-        setUploadStatus({
-          message: `Failed to create delegation: ${data.message}`,
-          status: "error",
-        });
+        throw new Error(data.message || "Failed to create delegation");
       }
     } catch (error) {
-      console.error("Error creating delegation:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setUploadStatus({
-        message: `Error creating delegation: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        message: `Error creating delegation: ${errorMessage}`,
         status: "error",
       });
+      if (onError) {
+        onError(errorMessage);
+      }
     } finally {
       setIsCreatingDelegation(false);
     }
@@ -200,6 +279,72 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
       });
     } finally {
       setIsImportingDelegation(false);
+    }
+  };
+
+  // Add automatic refresh of delegations
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      setActiveDelegations((prev) =>
+        prev.filter((d) => {
+          const now = Math.floor(Date.now() / 1000);
+          return d.expirationTimestamp > now;
+        })
+      );
+    }, 60000); // Check every minute
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  // Update the revocation handler
+  const handleRevokeDelegation = async (delegationId: string) => {
+    try {
+      const delegation = activeDelegations.find((d) => d.id === delegationId);
+      if (!delegation) {
+        throw new Error("Delegation not found");
+      }
+
+      setUploadStatus({
+        status: "loading",
+        message: "Revoking delegation...",
+      });
+
+      const response = await fetch("/api/storage/delegation/revoke", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          delegationId,
+          spaceDid: userSpace?.spaceDid,
+          proof: delegation.proof,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setActiveDelegations((prev) =>
+          prev.filter((d) => d.id !== delegationId)
+        );
+        setUploadStatus({
+          message: "Delegation revoked successfully",
+          status: "success",
+        });
+        setTimeout(() => setUploadStatus(null), 3000);
+      } else {
+        throw new Error(data.message || "Failed to revoke delegation");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setUploadStatus({
+        message: `Error revoking delegation: ${errorMessage}`,
+        status: "error",
+      });
+      if (onError) {
+        onError(errorMessage);
+      }
     }
   };
 
@@ -612,6 +757,93 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
           </button>
         </form>
       </div>
+
+      {/* Modified Active Delegations Section */}
+      {activeDelegations.length > 0 && (
+        <div
+          style={{
+            marginTop: "30px",
+            padding: "20px",
+            background: "rgba(30, 30, 30, 0.8)",
+            borderRadius: "8px",
+          }}
+        >
+          <h3 style={{ margin: "0 0 15px 0" }}>Active Delegations</h3>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {activeDelegations.map((delegation) => (
+              <div
+                key={delegation.id}
+                style={{
+                  padding: "15px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  borderRadius: "4px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "14px", marginBottom: "5px" }}>
+                    To: {delegation.audienceDid}
+                  </div>
+                  <div style={{ fontSize: "12px", opacity: 0.7 }}>
+                    {delegation.abilities.join(", ")}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "15px",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: calculateTimeRemaining(
+                        delegation.expirationTimestamp
+                      ).includes("Expired")
+                        ? "#ff4444"
+                        : "#4fd1c5",
+                    }}
+                  >
+                    {calculateTimeRemaining(delegation.expirationTimestamp)}
+                  </div>
+                  <button
+                    onClick={() => handleRevokeDelegation(delegation.id)}
+                    style={{
+                      padding: "6px 12px",
+                      background: "rgba(255, 68, 68, 0.1)",
+                      border: "1px solid rgba(255, 68, 68, 0.3)",
+                      borderRadius: "4px",
+                      color: "#ff4444",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(255, 68, 68, 0.2)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(255, 68, 68, 0.5)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(255, 68, 68, 0.1)";
+                      e.currentTarget.style.borderColor =
+                        "rgba(255, 68, 68, 0.3)";
+                    }}
+                  >
+                    Revoke
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
