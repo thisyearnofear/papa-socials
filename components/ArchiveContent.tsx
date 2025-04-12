@@ -15,6 +15,7 @@ import {
   AssetMetadata,
   UploadStatus,
 } from "./archive/types";
+import { DelegationTab } from "./archive/DelegationTab";
 
 interface ArchiveContentProps {
   onBackClick: () => void;
@@ -371,12 +372,22 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
           )}
         </button>
         {isInitialized ? (
-          <button
-            className={`archive-tab ${activeTab === "upload" ? "active" : ""}`}
-            onClick={() => setActiveTab("upload")}
-          >
-            Upload
-          </button>
+          <>
+            <button
+              className={`archive-tab ${
+                activeTab === "upload" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("upload")}
+            >
+              Upload
+            </button>
+            <button
+              className={`archive-tab ${activeTab === "share" ? "active" : ""}`}
+              onClick={() => setActiveTab("share")}
+            >
+              Share
+            </button>
+          </>
         ) : (
           <button
             className={`archive-tab ${activeTab === "login" ? "active" : ""}`}
@@ -489,6 +500,16 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
               isUploading={loading}
             />
           </motion.div>
+        )}
+
+        {/* Share Access */}
+        {activeTab === "share" && (
+          <DelegationTab
+            userSpace={userSpace}
+            uploadStatus={uploadStatus}
+            setUploadStatus={setUploadStatus}
+            onRefresh={refreshAssets}
+          />
         )}
       </div>
 

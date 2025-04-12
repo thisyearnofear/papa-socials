@@ -1,0 +1,163 @@
+.archive-delegations {
+  padding: 20px;
+  color: white;
+}
+
+.delegation-form {
+  background: rgba(30, 30, 30, 0.8);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.delegation-form-group {
+  margin-bottom: 15px;
+}
+
+.delegation-form-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.delegation-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: white;
+  font-size: 14px;
+}
+
+.delegation-form-input:focus {
+  outline: none;
+  border-color: rgba(79, 209, 197, 0.5);
+}
+
+.delegation-capabilities {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.capability-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.capability-item:hover {
+  background: rgba(79, 209, 197, 0.1);
+}
+
+.capability-item.selected {
+  background: rgba(79, 209, 197, 0.2);
+  border: 1px solid rgba(79, 209, 197, 0.3);
+}
+
+.delegation-list {
+  margin-top: 30px;
+}
+
+.delegation-item {
+  background: rgba(30, 30, 30, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delegation-info {
+  flex: 1;
+}
+
+.delegation-audience {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.delegation-capabilities {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.delegation-expiry {
+  font-size: 12px;
+  color: #4fd1c5;
+}
+
+.delegation-expiry.expired {
+  color: #ff4444;
+}
+
+.delegation-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.delegation-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delegation-button.revoke {
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #ff4444;
+}
+
+.delegation-button.revoke:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: rgba(255, 68, 68, 0.5);
+}
+
+.delegation-button.copy {
+  background: rgba(79, 209, 197, 0.1);
+  border: 1px solid rgba(79, 209, 197, 0.3);
+  color: #4fd1c5;
+}
+
+.delegation-button.copy:hover {
+  background: rgba(79, 209, 197, 0.2);
+  border-color: rgba(79, 209, 197, 0.5);
+}
+
+.delegation-result {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.delegation-import {
+  margin-top: 30px;
+}
+
+.delegation-import textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: white;
+  font-family: monospace;
+  font-size: 12px;
+  resize: vertical;
+}
