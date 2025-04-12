@@ -326,8 +326,33 @@ export function FilecoinProvider({ children }: FilecoinProviderProps) {
             );
           }
 
-          // Load assets for this space
-          await refreshAssets();
+          // Always refresh assets after login, with retry logic
+          let refreshAttempts = 0;
+          const maxRefreshAttempts = 3;
+
+          const attemptRefresh = async (): Promise<void> => {
+            try {
+              await refreshAssets();
+              console.log("Initial assets loaded successfully after login");
+            } catch (refreshErr) {
+              console.error("Error loading initial assets:", refreshErr);
+
+              refreshAttempts++;
+              if (refreshAttempts < maxRefreshAttempts) {
+                console.log(
+                  `Retrying asset refresh (attempt ${
+                    refreshAttempts + 1
+                  }/${maxRefreshAttempts})...`
+                );
+                // Wait 1 second before retrying
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                return attemptRefresh();
+              }
+            }
+          };
+
+          // Start the refresh process but don't wait for it to complete
+          attemptRefresh();
         } else {
           console.log("No spaces found for this email");
         }
