@@ -8,6 +8,8 @@ import "../styles/social.css";
 import "../styles/filecoin.css";
 import "../styles/archive.css";
 import "../styles/delegation.css";
+import "../styles/terminal.css";
+import "../styles/verification.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { FilecoinProvider } from "../contexts/filecoin-context";

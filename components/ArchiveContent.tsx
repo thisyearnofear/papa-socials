@@ -10,11 +10,7 @@ import { UploadForm } from "./archive/UploadForm";
 import { UserStatus } from "./archive/UserStatus";
 import { SpaceCreator } from "./archive/SpaceCreator";
 import { AssetModal } from "./archive/AssetModal";
-import {
-  Asset as ArchiveAsset,
-  AssetMetadata,
-  UploadStatus,
-} from "./archive/types";
+import { Asset as ArchiveAsset, AssetMetadata } from "./archive/types";
 import { DelegationTab } from "./archive/DelegationTab";
 
 // Define a specific type for status that includes "info"
@@ -105,6 +101,41 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
   const assets = storedAssets.map(convertToAsset);
   const loading = filecoinIsLoading || isLoading;
 
+  // Initial data fetching
+  const fetchUserAssets = useCallback(async () => {
+    if (!userSpace?.spaceDid) return;
+
+    setIsLoading(true);
+    try {
+      await refreshAssets();
+      if (storedAssets.length === 0) {
+        setUploadStatus({
+          message: "No items found in this space. You can upload new items.",
+          status: "info",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching assets:", err);
+      setUploadStatus({
+        message: "Failed to load assets. Please try again.",
+        status: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userSpace?.spaceDid, refreshAssets, storedAssets.length]);
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (!initialLoadAttempted && userSpace?.spaceDid) {
+        setInitialLoadAttempted(true);
+        await fetchUserAssets();
+      }
+    };
+
+    loadInitialData();
+  }, [userSpace?.spaceDid, initialLoadAttempted, fetchUserAssets]);
+
   // When user login is successful but no content loads, prompt to select a space
   useEffect(() => {
     if (
@@ -188,6 +219,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     refreshAssets,
     storedAssets.length,
     availableSpaces.length,
+    initialLoadAttempted, // Added missing dependency
   ]);
 
   // Fetch available spaces

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { useFilecoin } from "../contexts/filecoin-context";
 import { AIProvider } from "../contexts/ai/ai-context";
 import ArchiveContent from "./ArchiveContent";
@@ -8,6 +8,12 @@ import { SocialTerminal } from "./ai/SocialTerminal";
 
 interface IntegratedArchiveProps {
   onBackClick: () => void;
+}
+
+interface VerificationResult {
+  success: boolean;
+  accessGranted: boolean;
+  level?: number;
 }
 
 // Sample images for thumbnails since IPFS is not loading correctly
@@ -27,14 +33,14 @@ const IntegratedArchive: React.FC<IntegratedArchiveProps> = ({
   const [activeSection, setActiveSection] = useState<string>("verification");
   const [verificationComplete, setVerificationComplete] =
     useState<boolean>(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
-  const [showArchiveDetails, setShowArchiveDetails] = useState<boolean>(false);
+  const [verificationResult, setVerificationResult] =
+    useState<VerificationResult | null>(null);
 
   // Get user information from Filecoin context
   const { userSpace, isInitialized } = useFilecoin();
 
   // Handle verification completion
-  const handleVerificationComplete = (result: any) => {
+  const handleVerificationComplete = (result: VerificationResult) => {
     console.log("Verification result:", result);
     setVerificationResult(result);
     setVerificationComplete(true);
@@ -250,7 +256,7 @@ const IntegratedArchive: React.FC<IntegratedArchiveProps> = ({
             true ? (
               <AIProvider>
                 <div className="social-terminal-wrapper">
-                  <SocialTerminal userId={userSpace?.spaceDid || "anonymous"} />
+                  <SocialTerminal />
                 </div>
               </AIProvider>
             ) : (
