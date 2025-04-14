@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAI } from "../../contexts/ai/ai-context";
 import { PostDraft, GenerationTheme } from "../../agents/social-agent";
 
 interface SocialTerminalProps {
-  userId: string;
+  onComplete?: (result: boolean) => void;
+  userId?: string; // User ID for tracking interactions
 }
 
-export const SocialTerminal: React.FC<SocialTerminalProps> = ({ userId }) => {
+export const SocialTerminal: React.FC<SocialTerminalProps> = () => {
   // State management
   const [posts, setPosts] = useState<PostDraft[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,49 +34,33 @@ export const SocialTerminal: React.FC<SocialTerminalProps> = ({ userId }) => {
     isLoading: aiIsLoading,
   } = useAI();
 
-  // Load posts on component mount
-  useEffect(() => {
-    fetchPosts();
-  }, [activeTab]);
-
-  // Fetch posts based on active tab
-  const fetchPosts = async () => {
+  // Fetch posts based on active tab - define before use
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // For initial testing, use the API endpoint directly
-      const response = await fetch("/api/ai/social", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "getDrafts",
-          userId,
-          status:
-            activeTab === "drafts"
-              ? "draft"
-              : activeTab === "approved"
-              ? "approved"
-              : "posted",
-        }),
-      });
+      const posts = await getDrafts(
+        activeTab === "drafts"
+          ? "draft"
+          : activeTab === "approved"
+          ? "approved"
+          : "posted"
+      );
 
-      const data = await response.json();
-
-      if (data.success) {
-        setPosts(data.drafts || []);
-      } else {
-        setError(data.message || "Failed to fetch posts");
-      }
+      setPosts(posts);
     } catch (err) {
       setError("Error fetching posts. Please try again.");
       console.error("Error fetching posts:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, getDrafts]); // Add dependencies
+
+  // Load posts on component mount
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   // Generate new posts
   const handleGeneratePosts = async () => {
@@ -83,31 +68,12 @@ export const SocialTerminal: React.FC<SocialTerminalProps> = ({ userId }) => {
       setIsGenerating(true);
       setError(null);
 
-      // For initial testing, use the API endpoint directly
-      const response = await fetch("/api/ai/social", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "generate",
-          userId,
-          theme: generationTheme,
-          count: 3,
-        }),
-      });
+      const newPosts = await generatePosts(generationTheme, 3);
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Add new posts to the list if we're on the drafts tab
-        if (activeTab === "drafts") {
-          setPosts((prevPosts) => [...data.posts, ...prevPosts]);
-        }
-        setShowThemeModal(false);
-      } else {
-        setError(data.message || "Failed to generate posts");
+      if (activeTab === "drafts" && newPosts.length > 0) {
+        setPosts((prevPosts) => [...newPosts, ...prevPosts]);
       }
+      setShowThemeModal(false);
     } catch (err) {
       setError("Error generating posts. Please try again.");
       console.error("Error generating posts:", err);
@@ -119,24 +85,8 @@ export const SocialTerminal: React.FC<SocialTerminalProps> = ({ userId }) => {
   // Handle voting on a post
   const handleVote = async (postId: string, increment: boolean = true) => {
     try {
-      // For initial testing, use the API endpoint directly
-      const response = await fetch("/api/ai/social", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "voteDraft",
-          userId,
-          postId,
-          increment,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update the post's vote count in the UI
+      const success = await voteDraft(postId, increment);
+      if (success) {
         setPosts((prevPosts) =>
           prevPosts.map((post) =>
             post.id === postId
@@ -156,24 +106,8 @@ export const SocialTerminal: React.FC<SocialTerminalProps> = ({ userId }) => {
     status: "draft" | "approved" | "posted" | "rejected"
   ) => {
     try {
-      // For initial testing, use the API endpoint directly
-      const response = await fetch("/api/ai/social", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "updateStatus",
-          userId,
-          postId,
-          status,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Update the posts list - remove the post if its status no longer matches the active tab
+      const success = await updatePostStatus(postId, status);
+      if (success) {
         setPosts((prevPosts) =>
           prevPosts.filter((post) => {
             if (post.id === postId) {

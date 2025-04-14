@@ -63,7 +63,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
 
     // Clean up timeout
     return () => clearTimeout(timeoutId);
-  }, [url, onError]);
+  }, [url, onError, isLoading]);
 
   // Smart type detection that uses multiple sources of information
   const getEffectiveType = (): string => {

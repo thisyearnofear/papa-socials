@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { SocialAgent } from "../../../agents/social-agent";
-import OpenAI from "openai";
 import { GenerationTheme, PostDraft } from "../../../agents/social-agent";
 
 // In-memory storage for social post drafts
@@ -18,7 +17,19 @@ export default async function handler(
     });
   }
 
+  const { userId, action, theme, count, postId, status, increment } = req.body;
+
+  if (!action) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+    });
+  }
+
   try {
+    // Use userId for authentication/logging if needed
+    console.log(`Processing request for user: ${userId}`);
+
     // Create a social agent just for this request
     const agent = new SocialAgent(
       {
@@ -30,10 +41,6 @@ export default async function handler(
 
     // Initialize with the server-side API key
     await agent.initialize(process.env.OPENAI_API_KEY);
-
-    // Get the request body
-    const { action, userId, theme, count, postId, status, increment } =
-      req.body;
 
     // Handle different actions
     switch (action) {
@@ -233,54 +240,32 @@ export default async function handler(
 
 // Helper function to generate posts
 async function generatePosts(
-  agent: SocialAgent,
-  theme: GenerationTheme,
+  _agent: SocialAgent, // Unused for now but kept for API consistency
+  _theme: GenerationTheme, // Unused for now but kept for API consistency
   count: number
 ): Promise<PostDraft[]> {
-  // Mock artist content for generating relevant posts
-  const artistContent = {
-    recentContent: {
-      latestRelease: {
-        title: "New Summer Single",
-        date: "2023-07-15",
-        description: "A catchy summer anthem about road trips and memories",
-      },
-      upcomingShows: [
-        { venue: "The Echo", city: "Los Angeles", date: "2023-08-20" },
-        {
-          venue: "Bottom of the Hill",
-          city: "San Francisco",
-          date: "2023-09-15",
-        },
-      ],
-      recentNews:
-        "PAPA is back in the studio working on their third full-length album",
-    },
-  };
+  // Using hardcoded post data for now
+  // In a future implementation, we could use artist content to generate more relevant posts
+  // Example: Use latest release info, upcoming shows, etc.
 
-  // Mock implementation - in a real app, this would use the actual agent
-  // and retrieve content from your storage
-  return [
+  // Generate posts with proper typing
+  const posts: PostDraft[] = [
     {
       id: `post_draft_${Date.now()}_1`,
       content: `Excited to announce our new summer single is out now! Stream it everywhere and let us know what you think. #NewMusic #PAPA`,
-      suggestedMedia: [
-        "bafybeig6hejoldrf5oumqkwtsknxyjxhj2gnc3xo5gmjb4noc6ivxihg3m",
-      ],
+      suggestedMedia: ["bafybeig6hejoldrf5oumqkwtsknxyjxhj2gnc3xo5gmjb4noc6ivxihg3m"],
       votes: 0,
       targetPlatforms: ["twitter", "instagram"],
-      status: "draft",
+      status: "draft" as const,
       createdAt: new Date().toISOString(),
     },
     {
       id: `post_draft_${Date.now()}_2`,
       content: `LA - we're coming back to The Echo on August 20th! Tickets on sale this Friday. Who's joining us?`,
-      suggestedMedia: [
-        "bafybeihrhmymvbfcjtcl7yfvkqbo6visuzpqhjmfvyjl5kpwshla2hswna",
-      ],
+      suggestedMedia: ["bafybeihrhmymvbfcjtcl7yfvkqbo6visuzpqhjmfvyjl5kpwshla2hswna"],
       votes: 0,
       targetPlatforms: ["instagram", "facebook"],
-      status: "draft",
+      status: "draft" as const,
       createdAt: new Date().toISOString(),
     },
     {
@@ -288,8 +273,11 @@ async function generatePosts(
       content: `Back in the studio this week working on LP3. These new songs are taking us in exciting directions. Can't wait to share more soon.`,
       votes: 0,
       targetPlatforms: ["twitter", "instagram", "facebook"],
-      status: "draft",
+      status: "draft" as const,
       createdAt: new Date().toISOString(),
     },
-  ].slice(0, count);
+  ];
+
+  // Return the sliced array of posts
+  return posts.slice(0, count);
 }

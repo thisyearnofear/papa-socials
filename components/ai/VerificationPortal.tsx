@@ -2,14 +2,29 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAI } from "../../contexts/ai/ai-context";
 import {
-  VerificationChallenge,
+  VerificationChallenge as ImportedChallenge,
   VerificationQuestion,
 } from "../../agents/verification-agent";
 
 interface VerificationPortalProps {
   difficulty?: number;
   userId: string;
-  onComplete: (result: any) => void;
+  onComplete: (result: VerificationResult) => void;
+}
+
+interface VerificationResult {
+  success: boolean;
+  accessGranted: boolean;
+  level?: number;
+  message?: string;
+  score?: number;
+  feedback?: string;
+  newAccessLevel?: number;
+}
+
+interface ExtendedChallenge extends ImportedChallenge {
+  id: string;
+  questions: VerificationQuestion[];
 }
 
 export const VerificationPortal: React.FC<VerificationPortalProps> = ({
@@ -20,20 +35,14 @@ export const VerificationPortal: React.FC<VerificationPortalProps> = ({
   // State
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
-  const [challenge, setChallenge] = useState<VerificationChallenge | null>(
-    null
-  );
+  const [challenge, setChallenge] = useState<ExtendedChallenge | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
   const [interacted, setInteracted] = useState(false);
 
   // Get AI methods
-  const {
-    generateChallenge,
-    evaluateResponses,
-    isLoading: aiIsLoading,
-  } = useAI();
+  const { isLoading: aiIsLoading } = useAI();
 
   // Generate a challenge when the component mounts
   useEffect(() => {
@@ -243,7 +252,9 @@ export const VerificationPortal: React.FC<VerificationPortalProps> = ({
       >
         <div className="welcome-icon">🎭</div>
         <h2>Fan Verification Challenge</h2>
-        <p>Prove you're a true fan by answering these questions about PAPA.</p>
+        <p>
+          Prove you&apos;re a true fan by answering these questions about PAPA.
+        </p>
         <ul className="welcome-features">
           <li>
             <span>🏆</span> Earn fan access levels based on your knowledge
@@ -252,7 +263,8 @@ export const VerificationPortal: React.FC<VerificationPortalProps> = ({
             <span>🔓</span> Unlock exclusive features and content
           </li>
           <li>
-            <span>🎵</span> Show your connection to PAPA's music and history
+            <span>🎵</span> Show your connection to PAPA&apos;s music and
+            history
           </li>
         </ul>
         <motion.button
@@ -336,10 +348,12 @@ export const VerificationPortal: React.FC<VerificationPortalProps> = ({
           <div
             className="score-circle"
             style={{
-              background: `conic-gradient(#00a4ff ${result.score}%, #2a2a2a ${result.score}% 100%)`,
+              background: `conic-gradient(#00a4ff ${
+                result.score || 0
+              }%, #2a2a2a ${result.score || 0}% 100%)`,
             }}
           >
-            <span>{Math.round(result.score)}%</span>
+            <span>{Math.round(result.score || 0)}%</span>
           </div>
         </div>
         <p className="result-feedback">{result.feedback}</p>
@@ -352,7 +366,7 @@ export const VerificationPortal: React.FC<VerificationPortalProps> = ({
             transition={{ delay: 0.5, duration: 0.5 }}
           >
             <div className="access-badge">Level {result.newAccessLevel}</div>
-            <p>You've been granted access to exclusive fan content!</p>
+            <p>Couldn&apos;t verify your fan status.</p>
           </motion.div>
         )}
 

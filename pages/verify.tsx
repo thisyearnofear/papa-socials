@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import Layout from "../components/Layout";
-import { useClipAnimation } from "../hooks/useClipAnimation";
 import { motion } from "framer-motion";
 import { useFilecoin } from "../contexts/filecoin-context";
 
@@ -32,8 +31,13 @@ const VerificationPortal = dynamic(
 const VerifyPage = () => {
   // Animation and state
   const [isMounted, setIsMounted] = useState(false);
-  const { clipPathValue, isAnimating } = useClipAnimation();
-  const [verificationResult, setVerificationResult] = useState<any>(null);
+
+  interface VerificationResult {
+    success: boolean;
+    accessGranted: boolean;
+    level?: number;
+    message?: string;
+  }
 
   // Get Filecoin context for user info
   const { userSpace, isInitialized } = useFilecoin();
@@ -43,15 +47,16 @@ const VerifyPage = () => {
     setIsMounted(true);
   }, []);
 
-  const handleVerificationComplete = (result: any) => {
-    console.log("Verification result:", result);
-    setVerificationResult(result);
-
-    // If verification was successful, redirect to archive after delay
+  const handleVerificationComplete = (result: VerificationResult) => {
+    // Use the result to update UI or redirect based on verification status
     if (result.success && result.accessGranted) {
+      // Handle successful verification
       setTimeout(() => {
         window.location.href = "/archive";
       }, 3000);
+    } else {
+      // Handle failed verification
+      console.log("Verification failed");
     }
   };
 
@@ -70,11 +75,7 @@ const VerifyPage = () => {
     <Layout>
       <Head>
         <title>Fan Verification | PAPA</title>
-        <meta
-          name="description"
-          content="Verify yourself as a PAPA fan to access exclusive content"
-        />
-        <link rel="stylesheet" href="/styles/verification.css" />
+        <meta name="description" content="Verify yourself as a true PAPA fan" />
       </Head>
 
       <motion.div
@@ -85,7 +86,7 @@ const VerifyPage = () => {
       >
         <div className="verify-page-header">
           <h1>Fan Verification</h1>
-          <p>Prove you're a true PAPA fan to access exclusive content</p>
+          <p>Prove you&apos;re a true PAPA fan to access exclusive content</p>
         </div>
 
         {!isInitialized ? (

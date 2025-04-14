@@ -57,7 +57,6 @@ const TerminalPage = () => {
           name="description"
           content="Vote on PAPA's social media content and influence their online presence"
         />
-        <link rel="stylesheet" href="/styles/terminal.css" />
       </Head>
 
       <motion.div

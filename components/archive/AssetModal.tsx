@@ -10,9 +10,8 @@ interface AssetModalProps {
 
 export const AssetModal: React.FC<AssetModalProps> = ({ asset, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [ipfsUrl, setIpfsUrl] = useState("");
-  const [directUrl, setDirectUrl] = useState("");
-  const [loadError, setLoadError] = useState(false);
+  const [ipfsUrl, setIpfsUrl] = useState<string>("");
+  const [loadError, setLoadError] = useState<boolean>(false);
 
   // Format gateway URLs for asset access
   useEffect(() => {
@@ -20,7 +19,6 @@ export const AssetModal: React.FC<AssetModalProps> = ({ asset, onClose }) => {
     if (asset.metadata?.alternativeUrl) {
       // If we have a pre-formatted URL in the metadata, prefer that
       setIpfsUrl(asset.metadata.alternativeUrl);
-      setDirectUrl(asset.metadata.alternativeUrl);
     } else {
       // Fallback to constructing our own URL
       const gatewayUrl = `https://w3s.link/ipfs/${asset.cid}`;
@@ -29,7 +27,6 @@ export const AssetModal: React.FC<AssetModalProps> = ({ asset, onClose }) => {
         : "";
 
       setIpfsUrl(gatewayUrl + filenameComponent);
-      setDirectUrl(`https://ipfs.io/ipfs/${asset.cid}${filenameComponent}`);
     }
 
     // Add a backup timeout to ensure we don't get stuck in loading state
@@ -121,6 +118,11 @@ export const AssetModal: React.FC<AssetModalProps> = ({ asset, onClose }) => {
                   fileType={asset.metadata?.type}
                   onError={handlePreviewError}
                 />
+              )}
+              {loadError && (
+                <div className="error-message">
+                  Failed to load asset. Please try again later.
+                </div>
               )}
             </div>
 
