@@ -10,6 +10,10 @@ export interface AssetMetadata {
   license?: string;
   location?: string;
   customFields?: Record<string, string>;
+  name?: string;
+  alternativeUrl?: string;
+  gateway?: string;
+  timestamp?: string;
 }
 
 export interface Asset {
@@ -21,7 +25,7 @@ export interface Asset {
 }
 
 export interface UploadStatus {
-  status: "loading" | "success" | "error";
+  status: "loading" | "success" | "error" | "info";
   message: string;
 }
 

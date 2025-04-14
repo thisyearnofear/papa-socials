@@ -6,8 +6,11 @@ import "../styles/music.css";
 import "../styles/slides.css";
 import "../styles/social.css";
 import "../styles/filecoin.css";
+import "../styles/archive.css";
+import "../styles/delegation.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { FilecoinProvider } from "../contexts/filecoin-context";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -17,7 +20,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <Component {...pageProps} />
+      <FilecoinProvider>
+        <Component {...pageProps} />
+      </FilecoinProvider>
     </>
   );
 }

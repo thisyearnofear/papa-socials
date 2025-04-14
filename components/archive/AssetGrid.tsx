@@ -77,10 +77,8 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
               {getAssetPreview(asset)}
             </div>
             <div className="filecoin-asset-info">
-              <h3>{asset.metadata?.title || "Untitled"}</h3>
-              <p className="filecoin-asset-type">
-                {asset.metadata?.type || "Unknown type"}
-              </p>
+              <h3>{getDisplayName(asset)}</h3>
+              <p className="filecoin-asset-type">{getDisplayType(asset)}</p>
               <p className="filecoin-asset-date">
                 {asset.metadata?.date
                   ? new Date(asset.metadata.date).toLocaleDateString()
@@ -106,13 +104,42 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
   );
 };
 
+// Helper function to get an asset display name
+function getDisplayName(asset: Asset): string {
+  if (asset.metadata?.title) return asset.metadata.title;
+  if (asset.metadata?.name) return asset.metadata.name;
+  // Shorten CID for display if no title
+  return `File ${asset.cid.substring(0, 10)}...`;
+}
+
+// Helper function to get a display type
+function getDisplayType(asset: Asset): string {
+  const type = asset.metadata?.type || "Unknown type";
+
+  // Format known MIME types for better display
+  if (type.startsWith("image/")) return `Image (${type.split("/")[1]})`;
+  if (type.startsWith("video/")) return `Video (${type.split("/")[1]})`;
+  if (type.startsWith("audio/")) return `Audio (${type.split("/")[1]})`;
+  if (type === "application/pdf") return "PDF Document";
+  if (type.startsWith("text/")) return `Text (${type.split("/")[1]})`;
+
+  return type;
+}
+
 // Helper function to get a preview image based on asset type
 function getAssetPreview(asset: Asset) {
   const assetType = asset.metadata?.type;
-  const assetUrl = `https://w3s.link/ipfs/${asset.cid}${
-    asset.metadata?.title ? `/${encodeURIComponent(asset.metadata.title)}` : ""
-  }`;
 
+  // Use alternative URL if available, otherwise construct one
+  const assetUrl =
+    asset.metadata?.alternativeUrl ||
+    `https://w3s.link/ipfs/${asset.cid}${
+      asset.metadata?.title
+        ? `/${encodeURIComponent(asset.metadata.title)}`
+        : ""
+    }`;
+
+  // Handle image assets
   if (assetType?.startsWith("image/") || assetType === "image") {
     return (
       <div
@@ -125,6 +152,18 @@ function getAssetPreview(asset: Asset) {
           className="filecoin-asset-image"
           fill
           style={{ objectFit: "cover" }}
+          onError={(e) => {
+            // On error, replace with default icon
+            const target = e.target as HTMLImageElement;
+            target.style.display = "none";
+            const container = target.parentElement;
+            if (container) {
+              const fallback = document.createElement("div");
+              fallback.className = "filecoin-asset-icon image";
+              fallback.innerHTML = "<span>🖼️</span>";
+              container.appendChild(fallback);
+            }
+          }}
         />
       </div>
     );
@@ -157,6 +196,42 @@ function getAssetPreview(asset: Asset) {
     return (
       <div className="filecoin-asset-icon document">
         <span>📄</span>
+      </div>
+    );
+  }
+
+  // Default thumbnail with logic for specific file types based on name
+  const fileName = asset.metadata?.title || asset.metadata?.name || "";
+  const fileExt = fileName.split(".").pop()?.toLowerCase();
+
+  if (fileExt === "zip" || fileExt === "rar") {
+    return (
+      <div className="filecoin-asset-icon archive">
+        <span>🗜️</span>
+      </div>
+    );
+  }
+
+  if (fileExt === "doc" || fileExt === "docx") {
+    return (
+      <div className="filecoin-asset-icon document">
+        <span>📝</span>
+      </div>
+    );
+  }
+
+  if (fileExt === "xls" || fileExt === "xlsx") {
+    return (
+      <div className="filecoin-asset-icon spreadsheet">
+        <span>📊</span>
+      </div>
+    );
+  }
+
+  if (fileExt === "ppt" || fileExt === "pptx") {
+    return (
+      <div className="filecoin-asset-icon presentation">
+        <span>📑</span>
       </div>
     );
   }
