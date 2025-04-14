@@ -17,23 +17,19 @@ const archiveIcons = [
   { icon: "🎵", delay: 0.3 },
 ];
 
-// Dynamically import ArchiveProvider with client-side only rendering
-const ArchiveProvider = dynamic(
-  () =>
-    import("../contexts/filecoin-context").then((mod) => mod.FilecoinProvider),
-  { ssr: false }
+// Dynamically import the new IntegratedArchive component with client-side only rendering
+const IntegratedArchive = dynamic(
+  () => import("../components/IntegratedArchive"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="loading-container archive-preload">
+        <div className="loading-spinner"></div>
+        <p>Preparing interactive experience...</p>
+      </div>
+    ),
+  }
 );
-
-// Dynamically import ArchiveContent with client-side only rendering
-const ArchiveContent = dynamic(() => import("../components/ArchiveContent"), {
-  ssr: false,
-  loading: () => (
-    <div className="loading-container archive-preload">
-      <div className="loading-spinner"></div>
-      <p>Preparing catalogue...</p>
-    </div>
-  ),
-});
 
 const ArchivePage = () => {
   // Make sure we're in the browser before rendering
@@ -134,10 +130,10 @@ const ArchivePage = () => {
   return (
     <>
       <Head>
-        <title>PAPA | Artist Catalogue</title>
+        <title>PAPA | Interactive Archive</title>
         <meta
           name="description"
-          content="Explore PAPA's catalogue of music, videos, lyrics and more"
+          content="Explore PAPA's interactive archive featuring fan verification, artist catalogue, and social media hub"
         />
       </Head>
 
@@ -242,7 +238,7 @@ const ArchivePage = () => {
                         pointerEvents: "none",
                       }}
                     >
-                      discover the catalogue
+                      explore the interactive archive
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -277,11 +273,11 @@ const ArchivePage = () => {
                 userSelect: "none",
               }}
             >
-              Catalogue
+              Archive
             </motion.h2>
           </div>
           <p className="cover__description">
-            photos, videos, music, lyrics, upcoming
+            fan verification, artist catalogue, social media hub
           </p>
           <motion.button
             className="cover__button unbutton"
@@ -356,7 +352,7 @@ const ArchivePage = () => {
                 gap: "8px",
               }}
             >
-              <span>View Catalogue</span>
+              <span>Enter Archive</span>
               <motion.span
                 animate={{
                   x: [0, 5, 0],
@@ -396,62 +392,19 @@ const ArchivePage = () => {
                 padding: "20px",
                 backgroundColor: "rgba(0, 0, 0, 0.95)",
                 zIndex: 1000,
-                overflow: "hidden",
+                overflow: "auto",
               }}
             >
-              <div
-                className="archive-header"
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "20px 0",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                  zIndex: 1001,
-                }}
-              >
-                <h2 style={{ color: "#fff", margin: 0 }}>ARTIST CATALOGUE</h2>
-                <button
-                  className="archive-back"
-                  onClick={handleBackToGrid}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "transparent",
-                    border: "1px solid white",
-                    color: "white",
-                    cursor: "pointer",
-                    borderRadius: "4px",
-                  }}
-                >
-                  ← BACK
-                </button>
-              </div>
-
-              <div
-                className="archive-content-wrapper"
-                style={{
-                  position: "relative",
-                  height: "calc(100vh - 100px)",
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  WebkitOverflowScrolling: "touch",
-                }}
-              >
-                <ArchiveProvider>
-                  <ArchiveContent onBackClick={handleBackToGrid} />
-                </ArchiveProvider>
-              </div>
+              {/* Integrated Archive component that combines all functionality */}
+              <IntegratedArchive onBackClick={handleBackToGrid} />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Preload the archive content */}
+        {/* Preload the integrated archive content */}
         {isMounted && isContentPreloaded && stage !== "archive" && (
           <div className="preloaded-content" style={{ display: "none" }}>
-            <ArchiveProvider>
-              <ArchiveContent onBackClick={handleBackToGrid} />
-            </ArchiveProvider>
+            <IntegratedArchive onBackClick={handleBackToGrid} />
           </div>
         )}
 
@@ -459,7 +412,7 @@ const ArchivePage = () => {
         {!isMounted && !stage && (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Loading catalogue data...</p>
+            <p>Loading archive data...</p>
           </div>
         )}
       </Layout>
@@ -550,20 +503,7 @@ const ArchivePage = () => {
             opacity: 1;
           }
 
-          .archive-content-wrapper {
-            padding-bottom: 60px;
-          }
-
-          .archive-header {
-            padding: 15px 0 !important;
-          }
-
-          .archive-back {
-            font-size: 14px !important;
-            padding: 6px 12px !important;
-          }
-
-          .content-wrapper {
+          .archive-container {
             padding: 10px;
           }
         }

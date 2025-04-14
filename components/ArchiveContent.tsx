@@ -17,6 +17,15 @@ import {
 } from "./archive/types";
 import { DelegationTab } from "./archive/DelegationTab";
 
+// Define a specific type for status that includes "info"
+type StatusType = "loading" | "success" | "error" | "info";
+
+// Update the UploadStatus type to use our local StatusType
+interface ExtendedUploadStatus {
+  status: StatusType;
+  message: string;
+}
+
 interface ArchiveContentProps {
   onBackClick: () => void;
 }
@@ -56,7 +65,9 @@ const convertToContextMetadata = (
 const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
   // State management
   const [selectedAsset, setSelectedAsset] = useState<ArchiveAsset | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<ExtendedUploadStatus | null>(
+    null
+  );
   const [activeTab, setActiveTab] = useState<string>("browse");
   const [userEmail, setUserEmail] = useState<string>("");
   const [spaceName, setSpaceName] = useState<string>("");
@@ -70,6 +81,9 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
   const [hasMoreContent, setHasMoreContent] = useState<boolean>(true);
   const [spaceCursor, setSpaceCursor] = useState<string>("");
   const [hasMoreSpaces, setHasMoreSpaces] = useState<boolean>(false);
+  const [initialLoadAttempted, setInitialLoadAttempted] =
+    useState<boolean>(false);
+  const [showSpaceSelector, setShowSpaceSelector] = useState<boolean>(false);
 
   // Initialize Archive hook
   const {
@@ -90,6 +104,91 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
   // Derived state
   const assets = storedAssets.map(convertToAsset);
   const loading = filecoinIsLoading || isLoading;
+
+  // When user login is successful but no content loads, prompt to select a space
+  useEffect(() => {
+    if (
+      isInitialized &&
+      userSpace &&
+      storedAssets.length === 0 &&
+      !initialLoadAttempted
+    ) {
+      // Show space selector if we have spaces available but content isn't loading
+      if (availableSpaces.length > 0) {
+        setShowSpaceSelector(true);
+
+        // Show a helpful message to guide the user
+        setUploadStatus({
+          message: "Please select a space to view its contents",
+          status: "info",
+        });
+      }
+    }
+  }, [
+    isInitialized,
+    userSpace,
+    storedAssets.length,
+    initialLoadAttempted,
+    availableSpaces.length,
+  ]);
+
+  // Force refresh of assets after login or space switch
+  useEffect(() => {
+    // Only run this if we're initialized and have a userSpace
+    if (isInitialized && userSpace && !initialLoadAttempted) {
+      // Set flag to prevent multiple refresh attempts
+      setInitialLoadAttempted(true);
+
+      // Show loading state
+      setIsLoading(true);
+
+      // Try to load assets
+      refreshAssets()
+        .then(() => {
+          console.log("Initial assets loaded after login/space switch");
+          if (storedAssets.length === 0) {
+            // If still no assets, suggest space switching
+            if (availableSpaces.length > 1) {
+              setUploadStatus({
+                message:
+                  "No items found in this space. Try selecting a different space or upload new items.",
+                status: "info",
+              });
+              setShowSpaceSelector(true);
+            } else {
+              setUploadStatus({
+                message:
+                  "No items found in this space. You can upload new items or refresh to check again.",
+                status: "info",
+              });
+            }
+            setTimeout(() => setUploadStatus(null), 5000);
+          } else {
+            // Hide space selector if we successfully loaded content
+            setShowSpaceSelector(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load initial assets:", err);
+          setUploadStatus({
+            message:
+              "Unable to load assets, please try selecting a different space",
+            status: "error",
+          });
+          // Show space selector on error to help user try a different space
+          setShowSpaceSelector(true);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [
+    isInitialized,
+    userSpace,
+    refreshAssets,
+    storedAssets.length,
+    availableSpaces.length,
+  ]);
 
   // Fetch available spaces
   const fetchAvailableSpaces = useCallback(
@@ -159,8 +258,18 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
             "Login successful! Check your email for verification if needed.",
           status: "success",
         });
+
+        // Reset the initialLoadAttempted flag to ensure content loads after login
+        setInitialLoadAttempted(false);
+
         if (userSpace) {
           setActiveTab("browse");
+
+          // If we have multiple spaces available but no content is loading,
+          // show the space selector right away to improve the UX
+          if (availableSpaces.length > 1) {
+            setShowSpaceSelector(true);
+          }
         }
       } else {
         setUploadStatus({
@@ -185,6 +294,8 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     if (!spaceDid || !userEmail) return;
 
     setIsLoading(true);
+    setShowSpaceSelector(false); // Hide the selector while switching
+
     try {
       const selectedSpace = availableSpaces.find(
         (space) => space.did === spaceDid
@@ -197,6 +308,9 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
         selectedSpace.name
       );
       if (success) {
+        // Reset the initialLoadAttempted flag to ensure content loads after switching space
+        setInitialLoadAttempted(false);
+
         setUploadStatus({
           message: `Connected to space: ${selectedSpace.name}`,
           status: "success",
@@ -207,6 +321,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
           message: "Failed to connect to selected space",
           status: "error",
         });
+        setShowSpaceSelector(true); // Show selector again on failure
       }
     } catch (err) {
       setUploadStatus({
@@ -215,6 +330,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
         }`,
         status: "error",
       });
+      setShowSpaceSelector(true); // Show selector again on error
     } finally {
       setIsLoading(false);
     }
@@ -235,6 +351,9 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     try {
       const space = await createUserSpace(userEmail, spaceName);
       if (space) {
+        // Reset the initialLoadAttempted flag to ensure content loads after creating space
+        setInitialLoadAttempted(false);
+
         setUploadStatus({
           message: `Space "${spaceName}" created successfully!`,
           status: "success",
@@ -271,6 +390,10 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
         message: "Files uploaded successfully to archive!",
         status: "success",
       });
+
+      // Reset initialLoadAttempted to force refresh after upload
+      setInitialLoadAttempted(false);
+
       setActiveTab("browse");
     } catch (err) {
       setUploadStatus({
@@ -299,8 +422,52 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
     }
   };
 
+  // Function to manually refresh the asset list
+  const handleManualRefresh = async () => {
+    setIsLoading(true);
+    try {
+      await refreshAssets();
+
+      if (storedAssets.length === 0) {
+        // If still no assets after refresh, suggest space switching
+        if (availableSpaces.length > 1) {
+          setUploadStatus({
+            message:
+              "No items found in this space. Try selecting a different space.",
+            status: "info",
+          });
+          setShowSpaceSelector(true);
+        } else {
+          setUploadStatus({
+            message: "No items found in this space. You can upload new items.",
+            status: "info",
+          });
+        }
+      } else {
+        setUploadStatus({
+          message: "Catalogue refreshed successfully",
+          status: "success",
+        });
+        setShowSpaceSelector(false); // Hide space selector if content loaded
+      }
+
+      setTimeout(() => setUploadStatus(null), 3000);
+    } catch (error) {
+      console.error("Error refreshing catalogue:", error);
+      setUploadStatus({
+        message:
+          "Failed to refresh catalogue. Try selecting a different space.",
+        status: "error",
+      });
+      // Show space selector on error to help user try a different space
+      setShowSpaceSelector(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="archive-container">
+    <div className="archive-container centered-archive">
       {/* Header */}
       <div className="archive-header">
         <button className="archive-back-button" onClick={onBackClick}>
@@ -328,6 +495,31 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
         />
       </div>
 
+      {/* Space Selector - Shown when we need user to select a space */}
+      {showSpaceSelector && isInitialized && availableSpaces.length > 0 && (
+        <div className="space-selector">
+          <h3>Select a Space to View Content</h3>
+          <p>To view your content, please select one of your spaces below:</p>
+          <div className="space-list">
+            {availableSpaces.map((space) => (
+              <button
+                key={space.did}
+                className={`space-item ${
+                  userSpace?.spaceDid === space.did ? "active" : ""
+                }`}
+                onClick={() => handleSpaceSelection(space.did)}
+                disabled={loading}
+              >
+                <span className="space-name">{space.name}</span>
+                {userSpace?.spaceDid === space.did && (
+                  <span className="space-current">(Current)</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tabs Navigation */}
       <div className="archive-tabs">
         <button
@@ -337,25 +529,7 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
           Browse
         </button>
         <button
-          onClick={async () => {
-            setIsLoading(true);
-            try {
-              await refreshAssets();
-              setUploadStatus({
-                message: "Catalogue refreshed successfully",
-                status: "success",
-              });
-              setTimeout(() => setUploadStatus(null), 3000);
-            } catch (error) {
-              console.error("Error refreshing catalogue:", error);
-              setUploadStatus({
-                message: "Failed to refresh catalogue",
-                status: "error",
-              });
-            } finally {
-              setIsLoading(false);
-            }
-          }}
+          onClick={handleManualRefresh}
           className="archive-tab"
           disabled={loading}
         >
@@ -474,13 +648,38 @@ const ArchiveContent: React.FC<ArchiveContentProps> = ({ onBackClick }) => {
               <h2 className="section-title">Artist Catalogue</h2>
             </div>
 
-            <AssetGrid
-              assets={assets}
-              onAssetClick={setSelectedAsset}
-              loading={loading}
-              hasMore={hasMoreContent}
-              onLoadMore={handleLoadMore}
-            />
+            {isInitialized && assets.length === 0 && !loading ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📁</div>
+                <h3>No items in catalogue</h3>
+                <p>
+                  This space is empty. You can upload new items or refresh to
+                  check again.
+                </p>
+                <div className="empty-state-actions">
+                  <button
+                    onClick={() => setActiveTab("upload")}
+                    className="empty-state-button"
+                  >
+                    Upload New Items
+                  </button>
+                  <button
+                    onClick={handleManualRefresh}
+                    className="empty-state-button secondary"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <AssetGrid
+                assets={assets}
+                onAssetClick={setSelectedAsset}
+                loading={loading}
+                hasMore={hasMoreContent}
+                onLoadMore={handleLoadMore}
+              />
+            )}
           </motion.div>
         )}
 

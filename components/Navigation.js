@@ -126,12 +126,6 @@ const ClientNavigation = ({ router }) => {
               >
                 Band
               </Link>
-              <Link
-                href="/archive"
-                className={router.pathname === "/archive" ? "active" : ""}
-              >
-                Archive
-              </Link>
             </nav>
           </div>
         </div>
@@ -178,16 +172,6 @@ const ClientNavigation = ({ router }) => {
           >
             Band
           </Link>
-          <Link
-            href="/archive"
-            className={
-              router.pathname === "/archive"
-                ? "frame__demo frame__demo--current"
-                : "frame__demo"
-            }
-          >
-            Archive
-          </Link>
         </nav>
       )}
     </div>
@@ -224,9 +208,6 @@ export default function Navigation() {
           </Link>
           <Link href="/band" className="frame__demo">
             Band
-          </Link>
-          <Link href="/archive" className="frame__demo">
-            Archive
           </Link>
         </nav>
       </div>

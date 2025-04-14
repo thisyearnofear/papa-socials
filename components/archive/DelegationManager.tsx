@@ -54,7 +54,7 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
     "space/blob/add",
     "upload/add",
   ]);
-  const [expirationHours, setExpirationHours] = useState<number>(24);
+  const [expirationHours, setExpirationHours] = useState<number>(730); // Default to ~30 days (730 hours)
   const [isCreatingDelegation, setIsCreatingDelegation] =
     useState<boolean>(false);
   const [delegationResult, setDelegationResult] = useState<string | null>(null);
@@ -65,6 +65,7 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
   const [activeDelegations, setActiveDelegations] = useState<DelegationInfo[]>(
     []
   );
+  const [delegationError, setDelegationError] = useState<string | null>(null);
 
   // Get the current agent DID (client-side only)
   useEffect(() => {
@@ -87,36 +88,28 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
 
   // Add validation before creating delegation
   const validateDelegation = (): boolean => {
+    // Reset previous error
+    setDelegationError(null);
+
     if (!userSpace) {
-      setUploadStatus({
-        message: "No active space selected",
-        status: "error",
-      });
+      setDelegationError("No active space selected");
       return false;
     }
 
     if (!isValidDID(audienceDid)) {
-      setUploadStatus({
-        message:
-          "Invalid DID format. Must start with 'did:' followed by method and identifier",
-        status: "error",
-      });
+      setDelegationError(
+        "Invalid DID format. Must start with 'did:' followed by method and identifier"
+      );
       return false;
     }
 
     if (selectedAbilities.length === 0) {
-      setUploadStatus({
-        message: "Please select at least one permission",
-        status: "error",
-      });
+      setDelegationError("Please select at least one permission");
       return false;
     }
 
     if (expirationHours < 1 || expirationHours > 8760) {
-      setUploadStatus({
-        message: "Expiration time must be between 1 hour and 1 year",
-        status: "error",
-      });
+      setDelegationError("Expiration time must be between 1 hour and 1 year");
       return false;
     }
 
@@ -127,7 +120,13 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
   const handleCreateDelegation = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateDelegation()) return;
+    if (!validateDelegation()) {
+      setUploadStatus({
+        status: "error",
+        message: delegationError || "Validation failed",
+      });
+      return;
+    }
 
     setIsCreatingDelegation(true);
     setUploadStatus({
@@ -150,12 +149,33 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
         }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create delegation");
+      }
+
       const data = await response.json();
 
       if (data.success && data.delegation) {
-        const delegationBase64 = Buffer.from(data.delegation).toString(
-          "base64"
-        );
+        let delegationBase64;
+
+        // Handle different response formats
+        if (typeof data.delegation === "string") {
+          // It's already a string, just assign it
+          delegationBase64 = data.delegation;
+        } else if (data.delegation instanceof Uint8Array) {
+          // It's a byte array, convert to base64
+          delegationBase64 = Buffer.from(data.delegation).toString("base64");
+        } else if (typeof data.delegation === "object") {
+          // It's an object, stringify it
+          delegationBase64 = JSON.stringify(data.delegation);
+        } else {
+          // Fallback case - convert to string and then to base64
+          delegationBase64 = Buffer.from(String(data.delegation)).toString(
+            "base64"
+          );
+        }
+
         setDelegationResult(delegationBase64);
 
         // Add to active delegations
@@ -348,6 +368,24 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
     }
   };
 
+  // Format expiration time to human-readable format
+  const formatExpirationTime = (hours: number): string => {
+    if (hours < 24) {
+      return `${hours} hour${hours === 1 ? "" : "s"}`;
+    } else if (hours < 168) {
+      // Less than a week
+      const days = Math.floor(hours / 24);
+      return `${days} day${days === 1 ? "" : "s"}`;
+    } else if (hours < 720) {
+      // Less than a month (30 days)
+      const weeks = Math.floor(hours / 168);
+      return `${weeks} week${weeks === 1 ? "" : "s"}`;
+    } else {
+      const months = Math.floor(hours / 720);
+      return `${months} month${months === 1 ? "" : "s"}`;
+    }
+  };
+
   return (
     <motion.div
       className="archive-share"
@@ -411,6 +449,10 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
             }}
           >
             <h3 style={{ margin: "0 0 15px 0" }}>Create Delegation</h3>
+
+            {delegationError && (
+              <div className="delegation-error-message">{delegationError}</div>
+            )}
 
             <div className="archive-form-group">
               <label className="archive-form-label">Recipient Agent DID</label>
@@ -490,29 +532,30 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
             </div>
 
             <div className="archive-form-group">
-              <label className="archive-form-label">Expiration (hours)</label>
-              <input
-                type="number"
-                value={expirationHours}
-                onChange={(e) => setExpirationHours(parseInt(e.target.value))}
-                min="1"
-                max="8760" // 1 year
-                className="archive-form-input"
-                style={{
-                  background: "rgba(0, 0, 0, 0.2)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  color: "white",
-                }}
-              />
-              <small
-                style={{
-                  display: "block",
-                  opacity: "0.7",
-                  marginTop: "5px",
-                }}
-              >
-                Delegation will expire after this many hours.
-              </small>
+              <label className="archive-form-label">Duration</label>
+              <div className="expiration-selection">
+                <select
+                  value={expirationHours}
+                  onChange={(e) => setExpirationHours(parseInt(e.target.value))}
+                  className="archive-form-input"
+                  style={{
+                    background: "rgba(0, 0, 0, 0.2)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    color: "white",
+                  }}
+                >
+                  <option value="24">1 day</option>
+                  <option value="168">1 week</option>
+                  <option value="730">1 month</option>
+                  <option value="2190">3 months</option>
+                  <option value="4380">6 months</option>
+                  <option value="8760">1 year</option>
+                </select>
+                <div className="expiration-text">
+                  Delegation will expire after{" "}
+                  {formatExpirationTime(expirationHours)}
+                </div>
+              </div>
             </div>
 
             <button
@@ -616,7 +659,8 @@ export const DelegationManager: React.FC<DelegationManagerProps> = ({
                       They will need to use this delegation to access your space
                     </li>
                     <li>
-                      This delegation is valid for {expirationHours} hours
+                      This delegation is valid for{" "}
+                      {formatExpirationTime(expirationHours)}
                     </li>
                   </ol>
                 </div>
