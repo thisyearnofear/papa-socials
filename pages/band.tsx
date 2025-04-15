@@ -32,7 +32,7 @@ export default function BandPage() {
     null
   );
   const [showHint, setShowHint] = React.useState(true);
-  const [isCoverHidden, setIsCoverHidden] = React.useState(false);
+  const [isCoverHidden, setIsCoverHidden] = React.useState(false); // Keep this false so the cover is shown
   const [showMemberDetails, setShowMemberDetails] = React.useState(false);
   const [isBrowser, setIsBrowser] = useState(false);
   const titleControls = useAnimation();
@@ -53,19 +53,26 @@ export default function BandPage() {
     slidesRef,
     titleRef,
     toggleEffect,
-    stage,
     handleSlideClick,
+    stage,
   }: ClipAnimationReturn = useClipAnimation({
-    initialStage: "initial",
+    initialStage: "grid",
     stages: ["initial", "grid", "members"],
     callbacks: {
       onStageChange: (newStage: string, index?: number) => {
         console.log(`Band page transitioned to ${newStage} stage`, index);
 
-        if (newStage === "grid") {
+        if (newStage === "initial") {
+          // We shouldn't normally go to initial stage since we start in grid
           setIsCoverHidden(true);
           setSelectedMember(null);
           setShowMemberDetails(false);
+        } else if (newStage === "grid") {
+          // This is our starting stage
+          setIsCoverHidden(false); // Show the cover
+          setSelectedMember(null);
+          setShowMemberDetails(false);
+          console.log("In grid stage, ready for members view");
         } else if (newStage === "members") {
           setShowMemberDetails(true);
           console.log("Show member details set to true");
@@ -81,6 +88,17 @@ export default function BandPage() {
       },
     },
     defaultAnimationOptions: {
+      initialToGrid: {
+        clipPath: "inset(0% 0% round 0vw)",
+        clipScale: 0.9,
+        slideDuration: 0.4, // Faster duration for quick transition
+        slideEase: "power2.out",
+        slideStaggerAmount: 0.02, // Minimal staggering
+        slideStaggerFrom: "start",
+        titleDuration: 0.3, // Faster title animation
+        titleStaggerAmount: 0.02, // Minimal staggering
+        titleStaggerFrom: "start",
+      },
       gridToContent: {
         contentSelector: ".band-member-container",
         slideOpacity: 0.1,
@@ -97,6 +115,7 @@ export default function BandPage() {
   // Simplified floating animation
   useEffect(() => {
     if (stage === "grid") {
+      // Now we start in the grid stage
       iconsControls.start((i) => ({
         y: [-5, 5],
         transition: {
@@ -113,22 +132,45 @@ export default function BandPage() {
   // Enhanced title click handler with simplified animation
   const handleTitleClick = useCallback(() => {
     if (stage === "grid") {
+      // Now we start in the grid stage
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
 
       titleControls.start({
-        scale: 1.05,
-        transition: { duration: 0.2 },
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.3 },
       });
 
-      handleSlideClick(0);
+      console.log("Title clicked, transitioning to members");
+
+      // Since we're already in the grid stage, go directly to members view
+      handleSlideClick(0, {
+        contentSelector: ".band-member-container",
+        onCompleteCallback: () => {
+          console.log("Completed transition to members view");
+          // Make sure the member details are shown
+          setShowMemberDetails(true);
+          // Set the selected member
+          if (bandMembers[0]) {
+            setSelectedMember(bandMembers[0].id);
+          }
+        },
+      });
     }
-  }, [stage, handleSlideClick, titleControls]);
+  }, [
+    stage,
+    titleControls,
+    handleSlideClick,
+    setShowMemberDetails,
+    setSelectedMember,
+    // bandMembers is not needed as a dependency since it's not changing
+  ]);
 
   // Auto-hide hint after delay
   useEffect(() => {
     if (showHint && stage === "grid") {
+      // Now we start in the grid stage
       const timer = setTimeout(() => setShowHint(false), 5000);
       return () => clearTimeout(timer);
     }
@@ -137,8 +179,8 @@ export default function BandPage() {
   useEffect(() => {
     const coverButton = document.querySelector(".cover__button");
     if (coverButton) {
-      // Hide cover button in grid stage
-      if (stage === "grid") {
+      // Hide cover button in initial stage
+      if (stage === "initial") {
         coverButton.setAttribute(
           "style",
           "display: none; pointer-events: none;"
@@ -152,22 +194,22 @@ export default function BandPage() {
 
   const handleMemberClick = useCallback(
     (index: number) => {
-      if (stage === "grid") {
+      if (stage === "initial") {
         console.log("Clicking band member:", index);
         // Set selected member ID before the transition
         setSelectedMember(bandMembers[index].id);
         console.log("Selected member set to:", bandMembers[index].id);
 
-        // Then trigger the slide animation
-        handleSlideClick(index, {
+        // Go directly to members view
+        toggleEffect({
           onCompleteCallback: () => {
-            console.log("Slide click complete for index:", index);
+            console.log("Transition complete for index:", index);
             // State should already be set
           },
         });
       }
     },
-    [stage, handleSlideClick]
+    [stage, toggleEffect]
   );
 
   const handleBackClick = useCallback(
@@ -277,7 +319,7 @@ export default function BandPage() {
               className={`slide ${index === 0 ? "slide--current" : ""}`}
               onClick={() => handleMemberClick(index)}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
               }}
             >
               <div className="slide__img">
@@ -364,14 +406,14 @@ export default function BandPage() {
 
             <motion.h2
               className={`cover__title ${
-                stage === "grid" ? "interactive-title" : ""
+                stage === "initial" ? "interactive-title" : ""
               }`}
               onClick={handleTitleClick}
               ref={titleRef}
               data-splitting
               animate={titleControls}
               whileHover={
-                stage === "grid"
+                stage === "initial"
                   ? {
                       scale: 1.05,
                       transition: { duration: 0.2 },
@@ -379,7 +421,7 @@ export default function BandPage() {
                   : {}
               }
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
                 padding: "20px",
                 position: "relative",
                 textAlign: "center",
@@ -402,7 +444,21 @@ export default function BandPage() {
               className="cover__button unbutton"
               onClick={(e) => {
                 e.preventDefault();
-                toggleEffect();
+                console.log("Button clicked, transitioning to members");
+
+                // Since we're already in the grid stage, go directly to members view
+                handleSlideClick(0, {
+                  contentSelector: ".band-member-container",
+                  onCompleteCallback: () => {
+                    console.log("Completed transition to members view");
+                    // Make sure the member details are shown
+                    setShowMemberDetails(true);
+                    // Set the selected member
+                    if (bandMembers[0]) {
+                      setSelectedMember(bandMembers[0].id);
+                    }
+                  },
+                });
               }}
               initial={{ opacity: 0, y: 20 }}
               animate={{
@@ -435,27 +491,23 @@ export default function BandPage() {
                 cursor: "pointer",
                 overflow: "hidden",
                 textTransform: "uppercase",
-                boxShadow:
-                  "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
                 backdropFilter: "blur(10px)",
                 WebkitBackdropFilter: "blur(10px)",
-                margin: "0",
-                minWidth: "180px",
-                display: "inline-flex",
-                justifyContent: "center",
-                alignItems: "center",
-                WebkitAppearance: "none",
-                appearance: "none",
-                transform: "translateZ(0)",
-                willChange: "transform, opacity",
-                isolation: "isolate",
+                margin: "20px auto",
+                display: "block",
+                zIndex: 9999,
+                pointerEvents: "auto",
+                visibility: "visible",
+                opacity: 1,
               }}
             >
               <motion.div
                 className="button-highlight"
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 0.5 }}
                 animate={{
                   opacity: [0.5, 1, 0.5],
+                  scale: [1, 1.05, 1],
                   transition: {
                     duration: 2,
                     repeat: Infinity,
@@ -489,6 +541,7 @@ export default function BandPage() {
               >
                 <span>Meet</span>
                 <motion.span
+                  initial={{ opacity: 0 }}
                   animate={{
                     x: [0, 5, 0],
                     transition: {
@@ -497,12 +550,8 @@ export default function BandPage() {
                       ease: "easeInOut",
                     },
                   }}
-                  style={{
-                    fontSize: "1.2em",
-                    lineHeight: 1,
-                  }}
                 >
-                  ✌️
+                  👨‍🎤
                 </motion.span>
               </motion.span>
             </motion.button>

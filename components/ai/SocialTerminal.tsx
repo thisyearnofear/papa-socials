@@ -4,8 +4,9 @@ import { useAI } from "../../contexts/ai/ai-context";
 import { PostDraft, GenerationTheme } from "../../agents/social-agent";
 
 interface SocialTerminalProps {
-  onComplete?: (result: boolean) => void;
-  userId?: string; // User ID for tracking interactions
+  // onComplete is defined for future implementation but not currently used
+  // userId is used for tracking interactions
+  userId?: string;
 }
 
 export const SocialTerminal: React.FC<SocialTerminalProps> = () => {

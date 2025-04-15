@@ -104,6 +104,20 @@ a:hover {
   align-items: center;
   z-index: 100;
   pointer-events: none;
+  /* Allow specific elements to receive pointer events */
+}
+
+/* Ensure buttons are clickable */
+.cover .cover__button,
+[data-stage="initial"] .cover__button,
+body .cover__button {
+  pointer-events: auto;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  z-index: 9999;
+  position: relative;
+  margin: 20px auto;
 }
 
 .cover__title {
@@ -135,6 +149,8 @@ a:hover {
 
 /* Music-themed button styling */
 .cover__button {
+  /* Override parent pointer-events */
+  pointer-events: auto !important;
   background: var(--color-bg-button);
   color: var(--color-button);
   border: 0;
@@ -142,7 +158,7 @@ a:hover {
   padding: 1.2rem 3rem;
   font-weight: 700;
   cursor: pointer;
-  pointer-events: auto;
+  pointer-events: auto !important;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -153,7 +169,10 @@ a:hover {
   /* Consciousness flashing effect */
   animation: consciousnessFlash 3s infinite;
   /* Ensure high contrast against background */
-  z-index: 200;
+  z-index: 200 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   /* Start in hovered state */
   transform: translateY(-5px) scale(1.08);
 }

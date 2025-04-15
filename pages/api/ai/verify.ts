@@ -22,7 +22,8 @@ const handler = async (req: NextApiRequest, res: ExtendedResponse) => {
   }
 
   // Destructure only the properties we need from the request body
-  const { action, difficulty = 1, challengeId, responses } = req.body as ChallengeRequest;
+  // Ignore userId as it's not used in the current implementation
+  const { action, /* userId, */ difficulty = 1, challengeId, responses } = req.body as ChallengeRequest;
 
   try {
     const agent = new VerificationAgent({

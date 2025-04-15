@@ -51,7 +51,7 @@ export default function EventsPage() {
     stage,
   }: ClipAnimationReturn = useClipAnimation({
     initialStage: "initial",
-    stages: ["initial", "grid", "events"],
+    stages: ["initial", "events"],
     callbacks: {
       onStageChange: (newStage: string, index?: number) => {
         console.log(`Events page transitioned to ${newStage} stage`);
@@ -77,7 +77,7 @@ export default function EventsPage() {
 
   // Simplified floating animation
   useEffect(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       iconsControls.start((i) => ({
         y: [-5, 5],
         transition: {
@@ -93,27 +93,50 @@ export default function EventsPage() {
 
   // Enhanced title click handler with simplified animation
   const handleTitleClick = useCallback(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
 
       titleControls.start({
-        scale: 1.05,
-        transition: { duration: 0.2 },
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.3 },
       });
 
-      handleSlideClick(0);
+      console.log("Title clicked, transitioning to events");
+      // Skip the first transition and go directly to events
+      toggleEffect();
+
+      // After a short delay, trigger the slide click to go to events
+      setTimeout(() => {
+        console.log("Now transitioning to events");
+        handleSlideClick(0, {
+          contentSelector: ".papa-events-container",
+          onCompleteCallback: () => {
+            console.log("Directly transitioned to events view");
+          },
+        });
+      }, 100);
     }
-  }, [stage, handleSlideClick, titleControls]);
+  }, [stage, toggleEffect, titleControls, handleSlideClick]);
 
   // Auto-hide hint after delay
   useEffect(() => {
-    if (showHint && stage === "grid") {
+    if (showHint && stage === "initial") {
       const timer = setTimeout(() => setShowHint(false), 5000);
       return () => clearTimeout(timer);
     }
   }, [showHint, stage]);
+
+  // Make sure the button is visible
+  useEffect(() => {
+    if (stage === "initial") {
+      console.log("Making sure the button is visible in events page");
+      // We'll use the existing button styling from the JSX
+      // This ensures TypeScript compatibility
+      console.log("Button should be visible with JSX styling");
+    }
+  }, [stage]);
 
   // Handle toggle effect for returning to grid
   const handleBackClick = useCallback(() => {
@@ -146,9 +169,9 @@ export default function EventsPage() {
             <div
               key={index}
               className={`slide ${index === 2 ? "slide--current" : ""}`}
-              onClick={() => stage === "grid" && handleSlideClick(index)}
+              onClick={() => stage === "initial" && toggleEffect()}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
               }}
             >
               <div className="slide__img">
@@ -178,7 +201,9 @@ export default function EventsPage() {
 
         <div className="cover">
           <div
-            className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
+            className={`title-wrapper ${
+              stage === "initial" ? "interactive" : ""
+            }`}
             style={{
               position: "relative",
               padding: "20px",
@@ -189,7 +214,7 @@ export default function EventsPage() {
               justifyContent: "center",
             }}
           >
-            {stage === "grid" && (
+            {stage === "initial" && (
               <>
                 {calendarIcons.map((icon, i) => (
                   <motion.div
@@ -235,27 +260,34 @@ export default function EventsPage() {
 
             <motion.h2
               className={`cover__title ${
-                stage === "grid" ? "interactive-title" : ""
+                stage === "initial" ? "interactive-title" : ""
               }`}
               onClick={handleTitleClick}
               ref={titleRef}
               data-splitting
-              animate={titleControls}
-              whileHover={
-                stage === "grid"
-                  ? {
-                      scale: 1.05,
-                      transition: { duration: 0.2 },
-                    }
-                  : {}
-              }
+              animate={{
+                scale: 1,
+                boxShadow: [
+                  "0 0 0 rgba(255,255,255,0)",
+                  "0 0 20px rgba(255,255,255,0.5)",
+                  "0 0 0 rgba(255,255,255,0)",
+                ],
+                transition: {
+                  boxShadow: {
+                    repeat: Infinity,
+                    duration: 2,
+                    ease: "easeInOut",
+                  },
+                },
+              }}
+              whileHover={{ scale: 1.05 }}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
                 padding: "20px",
                 position: "relative",
                 textAlign: "center",
                 fontSize:
-                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                  stage === "initial" ? "clamp(2rem, 8vw, 4rem)" : undefined,
                 touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -271,7 +303,20 @@ export default function EventsPage() {
             className="cover__button unbutton"
             onClick={(e) => {
               e.preventDefault();
+              console.log("Button clicked, transitioning to events");
+              // Skip the first transition and go directly to events
               toggleEffect();
+
+              // After a short delay, trigger the slide click to go to events
+              setTimeout(() => {
+                console.log("Now transitioning to events");
+                handleSlideClick(0, {
+                  contentSelector: ".papa-events-container",
+                  onCompleteCallback: () => {
+                    console.log("Directly transitioned to events view");
+                  },
+                });
+              }, 100);
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{
@@ -307,13 +352,20 @@ export default function EventsPage() {
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
+              margin: "20px auto",
+              display: "block",
+              zIndex: 9999,
+              pointerEvents: "auto",
+              visibility: "visible",
+              opacity: 1,
             }}
           >
             <motion.div
               className="button-highlight"
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0.5 }}
               animate={{
                 opacity: [0.5, 1, 0.5],
+                scale: [1, 1.05, 1],
                 transition: {
                   duration: 2,
                   repeat: Infinity,
@@ -342,6 +394,7 @@ export default function EventsPage() {
             >
               <span>View</span>
               <motion.span
+                initial={{ opacity: 0 }}
                 animate={{
                   x: [0, 5, 0],
                   transition: {
@@ -351,7 +404,7 @@ export default function EventsPage() {
                   },
                 }}
               >
-                🕺🏾
+                🎭
               </motion.span>
             </motion.span>
           </motion.button>
