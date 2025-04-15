@@ -1,4 +1,29 @@
 /* Events page styles */
+
+/* Ensure the button is visible on the events page */
+.cover__button {
+  position: relative;
+  padding: 16px 32px;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  overflow: hidden;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  margin: 20px auto;
+  display: block;
+  z-index: 9999;
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
 .papa-events-container {
   position: fixed !important;
   top: 0;

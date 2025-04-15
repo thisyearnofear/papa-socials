@@ -27,12 +27,11 @@ export default function SocialPage() {
     slidesRef,
     titleRef,
     toggleEffect,
-    handleSlideClick,
     stage,
   }: ClipAnimationReturn = useClipAnimation({
     // Default stages for social page - match the music page flow
     initialStage: "initial",
-    stages: ["initial", "grid", "social"],
+    stages: ["initial", "social"],
     // Add callbacks for stage changes to handle UI updates
     callbacks: {
       onStageChange: (newStage: string) => {
@@ -63,7 +62,7 @@ export default function SocialPage() {
 
   // Enhanced title click handler with haptic feedback
   const handleTitleClick = useCallback(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
@@ -73,13 +72,14 @@ export default function SocialPage() {
         transition: { duration: 0.3 },
       });
 
-      handleSlideClick(0);
+      console.log("Title clicked, transitioning to social");
+      toggleEffect();
     }
-  }, [stage, handleSlideClick, titleControls]);
+  }, [stage, toggleEffect, titleControls]);
 
   // Floating animation for social icons
   useEffect(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       const floatingAnimation = async () => {
         await iconsControls.start((i) => ({
           y: [0, -20, 0],
@@ -100,7 +100,7 @@ export default function SocialPage() {
 
   // Auto-hide hint after delay
   useEffect(() => {
-    if (showHint && stage === "grid") {
+    if (showHint && stage === "initial") {
       const timer = setTimeout(() => setShowHint(false), 5000);
       return () => clearTimeout(timer);
     }
@@ -143,17 +143,11 @@ export default function SocialPage() {
     console.log("Current stage:", stage);
 
     // Add visual cues based on the current stage
-    if (stage === "grid") {
+    if (stage === "initial") {
       console.log("Adding clickable title effects for grid stage");
 
-      // Find and hide the initial cover button to prevent it from blocking clicks
-      const coverButton = document.querySelector(".cover__button");
-      if (coverButton) {
-        coverButton.setAttribute(
-          "style",
-          "display: none; pointer-events: none;"
-        );
-      }
+      // Make sure the button is visible
+      console.log("Button should be visible with JSX styling");
 
       // Store ref values in variables to avoid issues in cleanup function
       const titleElementRef = titleRef.current;
@@ -177,8 +171,8 @@ export default function SocialPage() {
         // Add a direct click event listener
         const clickHandler = () => {
           console.log("Title wrapper clicked directly");
-          if (stage === "grid") {
-            handleSlideClick(0);
+          if (stage === "initial") {
+            toggleEffect();
           }
         };
 
@@ -217,7 +211,7 @@ export default function SocialPage() {
 
     // Default cleanup function if the titleWrapper wasn't found
     return () => {};
-  }, [stage, titleRef, handleSlideClick, slidesRef]);
+  }, [stage, titleRef, toggleEffect, slidesRef]);
 
   return (
     <>
@@ -237,19 +231,19 @@ export default function SocialPage() {
 
       <Layout>
         <div
-          className={`slides ${stage === "grid" ? "grid" : ""}`}
+          className={`slides ${stage === "initial" ? "grid" : ""}`}
           ref={slidesRef}
         >
           {[1, 1, 1, 1, 1].map((num, index) => (
             <motion.div
               key={index}
               className={`slide ${index === 2 ? "slide--current" : ""}`}
-              onClick={() => stage === "grid" && handleSlideClick(index)}
+              onClick={() => stage === "initial" && toggleEffect()}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
               }}
               whileHover={
-                stage === "grid"
+                stage === "initial"
                   ? {
                       scale: 1.03,
                       boxShadow: "0 8px 30px rgba(0, 0, 0, 0.3)",
@@ -285,7 +279,9 @@ export default function SocialPage() {
 
         <div className="cover">
           <div
-            className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
+            className={`title-wrapper ${
+              stage === "initial" ? "interactive" : ""
+            }`}
             style={{
               position: "relative",
               padding: "20px",
@@ -296,7 +292,7 @@ export default function SocialPage() {
               justifyContent: "center",
             }}
           >
-            {stage === "grid" && (
+            {stage === "initial" && (
               <>
                 {/* Floating social icons */}
                 {socialIcons.map((icon, i) => (
@@ -341,14 +337,14 @@ export default function SocialPage() {
 
             <motion.h2
               className={`cover__title ${
-                stage === "grid" ? "interactive-title" : ""
+                stage === "initial" ? "interactive-title" : ""
               }`}
               onClick={handleTitleClick}
               ref={titleRef}
               data-splitting
               animate={titleControls}
               whileHover={
-                stage === "grid"
+                stage === "initial"
                   ? {
                       scale: 1.05,
                       transition: { duration: 0.2 },
@@ -356,12 +352,12 @@ export default function SocialPage() {
                   : {}
               }
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
                 padding: "20px",
                 position: "relative",
                 textAlign: "center",
                 fontSize:
-                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                  stage === "initial" ? "clamp(2rem, 8vw, 4rem)" : undefined,
                 touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -378,6 +374,7 @@ export default function SocialPage() {
             className="cover__button unbutton"
             onClick={(e) => {
               e.preventDefault();
+              console.log("Button clicked, transitioning to social");
               toggleEffect();
             }}
             initial={{ opacity: 0, y: 20 }}
@@ -414,6 +411,12 @@ export default function SocialPage() {
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
+              margin: "20px auto",
+              display: "block",
+              zIndex: 9999,
+              pointerEvents: "auto",
+              visibility: "visible",
+              opacity: 1,
             }}
           >
             <motion.div
@@ -449,6 +452,7 @@ export default function SocialPage() {
             >
               <span>Connect</span>
               <motion.span
+                initial={{ opacity: 0 }}
                 animate={{
                   x: [0, 5, 0],
                   transition: {
@@ -458,7 +462,7 @@ export default function SocialPage() {
                   },
                 }}
               >
-                👊
+                ✌️
               </motion.span>
             </motion.span>
           </motion.button>
@@ -601,6 +605,14 @@ export default function SocialPage() {
 
           .interactive-title:hover::after {
             width: 80%;
+          }
+
+          .cover__button {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin: 20px auto !important;
+            z-index: 100 !important;
           }
 
           @media (max-width: 768px) {

@@ -47,6 +47,7 @@ const VerifyPage = () => {
     setIsMounted(true);
   }, []);
 
+  // Define the handler for verification completion
   const handleVerificationComplete = (result: VerificationResult) => {
     // Use the result to update UI or redirect based on verification status
     if (result.success && result.accessGranted) {

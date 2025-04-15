@@ -43,7 +43,7 @@ export default function MusicPage() {
     handleSlideClick,
   }: ClipAnimationReturn = useClipAnimation({
     initialStage: "initial",
-    stages: ["initial", "grid", "discography"],
+    stages: ["initial", "discography"],
     callbacks: {
       onStageChange: (newStage: string, index?: number) => {
         console.log(
@@ -85,7 +85,7 @@ export default function MusicPage() {
 
   // Enhanced title click handler with haptic feedback
   const handleTitleClick = useCallback(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
@@ -95,13 +95,19 @@ export default function MusicPage() {
         transition: { duration: 0.3 },
       });
 
-      handleSlideClick(0);
+      // Add a small delay to make the animation visible
+      setTimeout(() => {
+        console.log("Title clicked, transitioning to discography");
+        console.log("Current stage before toggleEffect:", stage);
+        toggleEffect();
+        console.log("Current stage after toggleEffect:", stage);
+      }, 300);
     }
-  }, [stage, handleSlideClick, titleControls]);
+  }, [stage, toggleEffect, titleControls]);
 
   // Floating animation for music notes
   useEffect(() => {
-    if (stage === "grid") {
+    if (stage === "initial") {
       const floatingAnimation = async () => {
         await notesControls.start((i) => ({
           y: [0, -20, 0],
@@ -122,7 +128,7 @@ export default function MusicPage() {
 
   // Auto-hide hint after delay
   useEffect(() => {
-    if (showHint && stage === "grid") {
+    if (showHint && stage === "initial") {
       const timer = setTimeout(() => setShowHint(false), 5000);
       return () => clearTimeout(timer);
     }
@@ -130,15 +136,36 @@ export default function MusicPage() {
 
   useEffect(() => {
     console.log("Current stage:", stage);
+    console.log("toggleEffect function:", toggleEffect);
 
     // Simplified effect - only handle basic stage changes
-    if (stage === "grid") {
-      // Find and hide the initial cover button to prevent it from blocking clicks
+    if (stage === "initial") {
+      // Make sure the button is visible
       const coverButton = document.querySelector(".cover__button");
       if (coverButton) {
+        // Apply the same styling as in the JSX
         coverButton.setAttribute(
           "style",
-          "display: none; pointer-events: none;"
+          `position: relative !important;
+           padding: 16px 32px !important;
+           font-size: clamp(1rem, 2vw, 1.25rem) !important;
+           font-weight: 600 !important;
+           letter-spacing: 0.05em !important;
+           background: rgba(255, 255, 255, 0.1) !important;
+           border: 2px solid rgba(255, 255, 255, 0.8) !important;
+           border-radius: 8px !important;
+           color: white !important;
+           cursor: pointer !important;
+           overflow: hidden !important;
+           text-transform: uppercase !important;
+           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+           backdrop-filter: blur(10px) !important;
+           -webkit-backdrop-filter: blur(10px) !important;
+           margin: 20px auto !important;
+           display: block !important;
+           visibility: visible !important;
+           z-index: 100 !important;
+           opacity: 1 !important;`
         );
       }
 
@@ -171,7 +198,7 @@ export default function MusicPage() {
         );
       }
     }
-  }, [stage, handleSlideClick]);
+  }, [stage, handleSlideClick, toggleEffect]);
 
   return (
     <>
@@ -189,19 +216,19 @@ export default function MusicPage() {
 
       <Layout>
         <div
-          className={`slides ${stage === "grid" ? "grid" : ""}`}
+          className={`slides ${stage === "initial" ? "grid" : ""}`}
           ref={slidesRef}
         >
           {[1, 1, 1, 1, 1].map((num, index) => (
             <motion.div
               key={index}
               className={`slide ${index === 2 ? "slide--current" : ""}`}
-              onClick={() => stage === "grid" && handleSlideClick(index)}
+              onClick={() => stage === "initial" && toggleEffect()}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
               }}
               whileHover={
-                stage === "grid"
+                stage === "initial"
                   ? {
                       scale: 1.02,
                       boxShadow: "0 8px 30px rgba(0, 0, 0, 0.3)",
@@ -237,7 +264,9 @@ export default function MusicPage() {
 
         <div className="cover">
           <div
-            className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
+            className={`title-wrapper ${
+              stage === "initial" ? "interactive" : ""
+            }`}
             style={{
               position: "relative",
               padding: "20px",
@@ -248,7 +277,7 @@ export default function MusicPage() {
               justifyContent: "center",
             }}
           >
-            {stage === "grid" && (
+            {stage === "initial" && (
               <>
                 {/* Floating music notes */}
                 {musicNotes.map((_, i) => (
@@ -294,19 +323,34 @@ export default function MusicPage() {
 
             <motion.h2
               className={`cover__title ${
-                stage === "grid" ? "interactive-title" : ""
+                stage === "initial" ? "interactive-title" : ""
               }`}
               onClick={handleTitleClick}
               ref={titleRef}
               data-splitting
-              animate={titleControls}
+              animate={{
+                scale: 1,
+                boxShadow: [
+                  "0 0 0 rgba(255,255,255,0)",
+                  "0 0 20px rgba(255,255,255,0.5)",
+                  "0 0 0 rgba(255,255,255,0)",
+                ],
+                transition: {
+                  boxShadow: {
+                    repeat: Infinity,
+                    duration: 2,
+                    ease: "easeInOut",
+                  },
+                },
+              }}
+              whileHover={{ scale: 1.05 }}
               style={{
-                cursor: stage === "grid" ? "pointer" : "default",
+                cursor: stage === "initial" ? "pointer" : "default",
                 padding: "20px",
                 position: "relative",
                 textAlign: "center",
                 fontSize:
-                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                  stage === "initial" ? "clamp(2rem, 8vw, 4rem)" : undefined,
                 touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -322,7 +366,10 @@ export default function MusicPage() {
             className="cover__button unbutton"
             onClick={(e) => {
               e.preventDefault();
+              console.log("Button clicked, transitioning to discography");
+              console.log("Current stage before toggleEffect:", stage);
               toggleEffect();
+              console.log("Current stage after toggleEffect:", stage);
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{
@@ -362,9 +409,10 @@ export default function MusicPage() {
           >
             <motion.div
               className="button-highlight"
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0.5 }}
               animate={{
                 opacity: [0.5, 1, 0.5],
+                scale: [1, 1.05, 1],
                 transition: {
                   duration: 2,
                   repeat: Infinity,
@@ -393,6 +441,7 @@ export default function MusicPage() {
             >
               <span>Explore</span>
               <motion.span
+                initial={{ opacity: 0 }}
                 animate={{
                   x: [0, 5, 0],
                   transition: {
@@ -402,7 +451,7 @@ export default function MusicPage() {
                   },
                 }}
               >
-                👀
+                🕺🏾
               </motion.span>
             </motion.span>
           </motion.button>
