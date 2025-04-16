@@ -55,11 +55,35 @@ export const bandMembers: BandMember[] = [
   },
   {
     id: 8,
-    name: "Jim Jams",
-    instrument: "harmonies",
+    name: "Old Queens Head",
+    instrument: "Strum",
     image: "/img/demo4/8.jpg",
     isGroupPhoto: true,
   },
-
+  {
+    id: 9,
+    name: "Prizz",
+    instrument: "Vocals",
+    image: "/img/demo4/9.jpg",
+  },
+  {
+    id: 10,
+    name: "Prince Of Wales",
+    instrument: "Brixton",
+    image: "/img/demo4/10.jpg",
+    isGroupPhoto: true,
+  },
+  {
+    id: 11,
+    name: "Jaz",
+    instrument: "Tenor Sax",
+    image: "/img/demo4/11.jpg",
+  },
+  {
+    id: 12,
+    name: "Jack",
+    instrument: "Soprano Sax",
+    image: "/img/demo4/12.jpg",
+  },
   // Continue with more members...
 ];

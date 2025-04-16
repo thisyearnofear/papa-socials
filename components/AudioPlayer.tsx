@@ -68,19 +68,24 @@ export default function AudioPlayer() {
 
   return (
     <>
-      {showOverlay && (
-        <div style={{
+      <div
+        style={{
+          pointerEvents: showOverlay ? 'auto' : 'none',
+          opacity: showOverlay ? 1 : 0,
+          transition: 'opacity 0.7s cubic-bezier(.4,0,.2,1)',
           position: "fixed",
           top: 0,
           left: 0,
           width: "100vw",
           height: "100vh",
-          background: "rgba(255,255,255,0.92)",
+          background: "#fff",
           zIndex: 20000,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-        }}>
+        }}
+      >
+        {showOverlay && (
           <button
             onClick={startPlayback}
             style={{
@@ -96,8 +101,8 @@ export default function AudioPlayer() {
           >
             ▶
           </button>
-        </div>
-      )}
+        )}
+      </div>
       <div
         style={{
           position: "fixed",
