@@ -432,7 +432,7 @@ export default function BandPage() {
                 userSelect: "none",
               }}
             >
-              The Jim Jams
+              Jim Jams
             </motion.h2>
           </div>
           <p className="cover__description">
