@@ -40,7 +40,6 @@ export const bandMembers: BandMember[] = [
     instrument: "Sax",
     image: "/img/demo4/5.jpg",
   },
-  // Add more demo members to reach 30+
   {
     id: 6,
     name: "Congo",
@@ -85,5 +84,30 @@ export const bandMembers: BandMember[] = [
     instrument: "Soprano Sax",
     image: "/img/demo4/12.jpg",
   },
+  {
+    id: 13,
+    name: "Tommy D",
+    instrument: "Keys",
+    image: "/img/demo4/13.jpg",
+  },
+  {
+    id: 14,
+    name: "Rob L",
+    instrument: "Guitar",
+    image: "/img/demo4/14.jpg",
+  },
+  {
+    id: 15,
+    name: "Stefano",
+    instrument: "Bass",
+    image: "/img/demo4/15.jpg",
+  },
+  {
+    id: 16,
+    name: "Alex O",
+    instrument: "Guitar",
+    image: "/img/demo4/16.jpg",
+  },
+  
   // Continue with more members...
 ];
