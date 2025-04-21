@@ -34,15 +34,16 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
           bottom: 0,
           pointerEvents: "auto",
           opacity: 1,
-          marginLeft: "20px",
-          marginRight: "20px",
-          paddingBottom: "40px",
+          marginLeft: "clamp(0px, 3vw, 20px)",
+          marginRight: "clamp(0px, 3vw, 20px)",
+          paddingBottom: "clamp(20px, 8vh, 40px)",
           height: "100vh",
           overflowY: "auto",
           background: "rgba(0, 0, 0, 0.85)",
           zIndex: 1000,
           willChange: "transform, opacity",
           display: "block",
+          overflowX: "hidden",
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -52,7 +53,7 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
         <div
           className="band-member-header"
           style={{
-            padding: "20px",
+            padding: "clamp(10px, 4vw, 20px)",
             position: "sticky",
             top: 0,
             zIndex: 1001,
@@ -63,6 +64,8 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
             justifyContent: "space-between",
             alignItems: "center",
             borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            flexWrap: "wrap",
+            gap: "10px",
           }}
         >
           <h2>THE BAND</h2>
@@ -70,14 +73,17 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
             className="back-button"
             onClick={handleBackClick}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "transparent",
+              padding: "clamp(8px, 2vw, 12px) clamp(12px, 4vw, 20px)",
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
               border: "1px solid white",
               color: "white",
               cursor: "pointer",
               borderRadius: "4px",
               zIndex: 1002,
               position: "relative",
+              fontSize: "clamp(14px, 3.5vw, 16px)",
+              fontWeight: "bold",
+              transition: "all 0.2s ease",
             }}
           >
             Back
@@ -97,9 +103,11 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
             },
           }}
           style={{
-            padding: "20px",
+            padding: "clamp(10px, 4vw, 20px)",
             position: "relative",
             zIndex: 1001,
+            width: "100%",
+            maxWidth: "100%",
           }}
         >
           {/* Selected Member */}
@@ -107,7 +115,8 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
             <div
               className="selected-member"
               style={{
-                marginBottom: "40px",
+                marginBottom: "clamp(20px, 5vh, 40px)",
+                width: "100%",
               }}
             >
               <div
@@ -115,11 +124,12 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "20px",
+                  gap: "clamp(10px, 3vh, 20px)",
                   textAlign: "center",
-                  padding: "20px",
-                  maxWidth: "800px",
+                  padding: "clamp(10px, 3vw, 20px)",
+                  maxWidth: "min(800px, 100%)",
                   margin: "0 auto",
+                  width: "100%",
                 }}
               >
                 <div
@@ -130,10 +140,10 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
                         ?.image
                     })`,
                     width: "100%",
-                    height: "400px",
+                    height: "clamp(250px, 50vw, 400px)",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    marginBottom: "20px",
+                    marginBottom: "clamp(10px, 3vh, 20px)",
                     borderRadius: "8px",
                     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
                   }}
@@ -141,8 +151,8 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
                 <div className="band-member-info">
                   <h3
                     style={{
-                      fontSize: "2rem",
-                      marginBottom: "10px",
+                      fontSize: "clamp(1.5rem, 6vw, 2rem)",
+                      marginBottom: "clamp(5px, 2vh, 10px)",
                     }}
                   >
                     {
@@ -152,9 +162,9 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
                   </h3>
                   <p
                     style={{
-                      fontSize: "1.2rem",
+                      fontSize: "clamp(1rem, 4vw, 1.2rem)",
                       color: "rgba(255, 255, 255, 0.8)",
-                      marginBottom: "20px",
+                      marginBottom: "clamp(10px, 3vh, 20px)",
                     }}
                   >
                     {
@@ -184,16 +194,24 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
 
           {/* All Band Members List */}
           <div className="all-members">
-            <h3 style={{ marginBottom: "20px", textAlign: "center" }}>
+            <h3
+              style={{
+                marginBottom: "clamp(10px, 3vh, 20px)",
+                textAlign: "center",
+                fontSize: "clamp(1.2rem, 5vw, 1.5rem)",
+              }}
+            >
               ALL BAND MEMBERS
             </h3>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                gap: "20px",
-                maxWidth: "1200px",
+                gridTemplateColumns:
+                  "repeat(auto-fill, minmax(clamp(150px, 40vw, 250px), 1fr))",
+                gap: "clamp(10px, 3vw, 20px)",
+                maxWidth: "min(1200px, 100%)",
                 margin: "0 auto",
+                width: "100%",
               }}
             >
               {bandMembers.map((member) => (
@@ -224,19 +242,26 @@ export const BandMemberContent: React.FC<BandMemberContentProps> = ({
                 >
                   <div
                     style={{
-                      height: "200px",
+                      height: "clamp(120px, 30vw, 200px)",
                       backgroundImage: `url(${member.image})`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                       borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
                     }}
                   />
-                  <div style={{ padding: "15px" }}>
-                    <h4 style={{ marginBottom: "5px" }}>{member.name}</h4>
+                  <div style={{ padding: "clamp(8px, 3vw, 15px)" }}>
+                    <h4
+                      style={{
+                        marginBottom: "clamp(3px, 1vh, 5px)",
+                        fontSize: "clamp(0.9rem, 3.5vw, 1.1rem)",
+                      }}
+                    >
+                      {member.name}
+                    </h4>
                     <p
                       style={{
                         color: "rgba(255, 255, 255, 0.7)",
-                        fontSize: "0.9rem",
+                        fontSize: "clamp(0.8rem, 3vw, 0.9rem)",
                       }}
                     >
                       {member.instrument}

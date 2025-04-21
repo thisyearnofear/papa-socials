@@ -352,12 +352,14 @@ export default function BandPage() {
             className={`title-wrapper ${stage === "grid" ? "interactive" : ""}`}
             style={{
               position: "relative",
-              padding: "20px",
-              minHeight: "120px",
+              padding: "clamp(10px, 5vw, 20px)",
+              minHeight: "clamp(80px, 15vh, 120px)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
+              maxWidth: "100vw",
             }}
           >
             {stage === "grid" && (
@@ -369,10 +371,13 @@ export default function BandPage() {
                     animate={iconsControls}
                     style={{
                       position: "absolute",
-                      fontSize: "20px",
+                      fontSize: "clamp(16px, 5vw, 24px)",
                       opacity: 0.8,
                       pointerEvents: "none",
                       willChange: "transform",
+                      // Distribute icons better on mobile
+                      top: `${i % 2 === 0 ? -10 : 10}px`,
+                      left: `${25 * i}%`,
                     }}
                   >
                     {icon.icon}
@@ -391,10 +396,11 @@ export default function BandPage() {
                         position: "absolute",
                         top: "-30px",
                         color: "white",
-                        fontSize: "14px",
+                        fontSize: "clamp(12px, 3vw, 14px)",
                         textAlign: "center",
                         width: "100%",
                         pointerEvents: "none",
+                        padding: "0 10px",
                       }}
                     >
                       jambo
@@ -426,7 +432,7 @@ export default function BandPage() {
                 position: "relative",
                 textAlign: "center",
                 fontSize:
-                  stage === "grid" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                  stage === "grid" ? "clamp(2rem, 10vw, 4rem)" : undefined,
                 touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -435,7 +441,16 @@ export default function BandPage() {
               Jim Jams
             </motion.h2>
           </div>
-          <p className="cover__description">
+          <p
+            className="cover__description"
+            style={{
+              maxWidth: "clamp(280px, 85vw, 600px)",
+              fontSize: "clamp(0.9rem, 4vw, 1.4rem)",
+              padding: "clamp(0.8rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem)",
+              margin: "clamp(1vh, 2vh, 4vh) auto",
+              lineHeight: "1.5",
+            }}
+          >
             A dash of drums here, a pinch of horn there, tablespoon of boiling
             Memphis guitar sprinkled everywhere.
           </p>
@@ -480,8 +495,8 @@ export default function BandPage() {
               }}
               style={{
                 position: "relative",
-                padding: "16px 32px",
-                fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                padding: "clamp(12px, 4vw, 16px) clamp(20px, 8vw, 32px)",
+                fontSize: "clamp(0.9rem, 4vw, 1.25rem)",
                 fontWeight: "600",
                 letterSpacing: "0.05em",
                 background: "rgba(255, 255, 255, 0.1)",
@@ -494,12 +509,15 @@ export default function BandPage() {
                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
                 backdropFilter: "blur(10px)",
                 WebkitBackdropFilter: "blur(10px)",
-                margin: "20px auto",
+                margin: "clamp(15px, 5vh, 30px) auto",
                 display: "block",
                 zIndex: 9999,
                 pointerEvents: "auto",
                 visibility: "visible",
                 opacity: 1,
+                width: "fit-content",
+                minWidth: "clamp(180px, 60vw, 240px)",
+                maxWidth: "90vw",
               }}
             >
               <motion.div
@@ -532,11 +550,13 @@ export default function BandPage() {
                   zIndex: 1,
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "12px",
-                  fontSize: "clamp(1rem, 2vw, 1.25rem)",
+                  gap: "clamp(8px, 3vw, 12px)",
+                  fontSize: "clamp(0.9rem, 4vw, 1.25rem)",
                   fontWeight: "600",
                   letterSpacing: "0.05em",
                   color: "white",
+                  justifyContent: "center",
+                  width: "100%",
                 }}
               >
                 <span>Meet</span>
@@ -630,13 +650,20 @@ export default function BandPage() {
             z-index: -1;
           }
 
+          /* Responsive grid layout */
+          .slides {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-gap: clamp(8px, 2vw, 16px);
+            padding: clamp(8px, 2vw, 16px);
+          }
+
           @media (max-width: 768px) {
             .interactive {
-              padding: 30px;
+              padding: clamp(15px, 5vw, 30px);
             }
 
             .interactive-title {
-              padding: 15px 30px !important;
+              padding: clamp(10px, 4vw, 15px) clamp(15px, 6vw, 30px) !important;
             }
 
             .interactive::before {
@@ -665,7 +692,8 @@ export default function BandPage() {
             }
 
             .band-member-image {
-              height: 300px !important;
+              height: clamp(200px, 50vw, 300px) !important;
+              width: 100% !important;
             }
 
             .band-member-container {
@@ -674,12 +702,72 @@ export default function BandPage() {
             }
 
             .band-member-header {
-              padding: 15px;
+              padding: clamp(10px, 3vw, 15px);
             }
 
             .back-button {
-              font-size: 14px;
-              padding: 6px 12px;
+              font-size: clamp(12px, 3.5vw, 14px);
+              padding: clamp(6px, 2vw, 8px) clamp(10px, 3vw, 12px);
+            }
+
+            /* Adjust grid for smaller screens */
+            .slides {
+              grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+              grid-gap: 10px;
+              padding: 10px;
+            }
+          }
+
+          /* Extra small devices */
+          @media (max-width: 480px) {
+            .slides {
+              grid-template-columns: repeat(2, 1fr);
+              grid-gap: 8px;
+              padding: 8px;
+            }
+
+            .cover__title {
+              font-size: clamp(1.8rem, 12vw, 3rem);
+            }
+
+            .cover__description {
+              font-size: 0.9rem;
+              padding: 0.8rem;
+              margin: 1vh auto;
+            }
+
+            .band-member-image {
+              height: 180px !important;
+            }
+
+            .band-member-info h3 {
+              font-size: 1.5rem !important;
+            }
+
+            .band-member-info p {
+              font-size: 1rem !important;
+            }
+
+            /* Make all member cards smaller */
+            .all-members {
+              margin-top: 10px;
+            }
+
+            .all-members h3 {
+              font-size: 1.2rem !important;
+              margin-bottom: 10px !important;
+            }
+
+            .member-card div:first-child {
+              height: 120px !important;
+            }
+
+            .member-card h4 {
+              font-size: 0.9rem !important;
+            }
+
+            .member-card p {
+              font-size: 0.8rem !important;
             }
           }
         `}</style>
