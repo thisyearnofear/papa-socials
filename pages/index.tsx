@@ -269,12 +269,14 @@ export default function MusicPage() {
             }`}
             style={{
               position: "relative",
-              padding: "20px",
-              minHeight: "120px",
+              padding: "clamp(10px, 5vw, 20px)",
+              minHeight: "clamp(80px, 15vh, 120px)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
+              maxWidth: "100vw",
             }}
           >
             {stage === "initial" && (
@@ -287,10 +289,13 @@ export default function MusicPage() {
                     animate={notesControls}
                     style={{
                       position: "absolute",
-                      fontSize: "24px",
+                      fontSize: "clamp(18px, 5vw, 24px)",
                       color: "white",
                       opacity: 0.8,
                       pointerEvents: "none",
+                      // Distribute notes better on mobile
+                      top: `${i % 2 === 0 ? -10 : 10}px`,
+                      left: `${25 * i}%`,
                     }}
                   >
                     ♪
@@ -308,10 +313,11 @@ export default function MusicPage() {
                         position: "absolute",
                         top: "-30px",
                         color: "white",
-                        fontSize: "14px",
+                        fontSize: "clamp(12px, 3vw, 14px)",
                         textAlign: "center",
                         width: "100%",
                         pointerEvents: "none",
+                        padding: "0 10px",
                       }}
                     >
                       Tap me
@@ -350,7 +356,7 @@ export default function MusicPage() {
                 position: "relative",
                 textAlign: "center",
                 fontSize:
-                  stage === "initial" ? "clamp(2rem, 8vw, 4rem)" : undefined,
+                  stage === "initial" ? "clamp(2rem, 10vw, 4rem)" : undefined,
                 touchAction: "manipulation",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -359,7 +365,16 @@ export default function MusicPage() {
               Music
             </motion.h2>
           </div>
-          <p className="cover__description">
+          <p
+            className="cover__description"
+            style={{
+              maxWidth: "clamp(280px, 85vw, 600px)",
+              fontSize: "clamp(0.9rem, 4vw, 1.4rem)",
+              padding: "clamp(0.8rem, 3vw, 1.5rem) clamp(1rem, 4vw, 2rem)",
+              margin: "clamp(1vh, 2vh, 4vh) auto",
+              lineHeight: "1.5",
+            }}
+          >
             beaming with afro soul, latin rhythms, europa animus, funk & blues.
           </p>
           <motion.button
@@ -391,8 +406,8 @@ export default function MusicPage() {
             }}
             style={{
               position: "relative",
-              padding: "16px 32px",
-              fontSize: "clamp(1rem, 2vw, 1.25rem)",
+              padding: "clamp(12px, 4vw, 16px) clamp(20px, 8vw, 32px)",
+              fontSize: "clamp(0.9rem, 4vw, 1.25rem)",
               fontWeight: "600",
               letterSpacing: "0.05em",
               background: "rgba(255, 255, 255, 0.1)",
@@ -405,6 +420,10 @@ export default function MusicPage() {
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
+              margin: "clamp(15px, 5vh, 30px) auto",
+              width: "fit-content",
+              minWidth: "clamp(180px, 60vw, 240px)",
+              maxWidth: "90vw",
             }}
           >
             <motion.div
@@ -436,7 +455,9 @@ export default function MusicPage() {
                 zIndex: 1,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
+                gap: "clamp(8px, 3vw, 12px)",
+                justifyContent: "center",
+                width: "100%",
               }}
             >
               <span>Explore</span>
@@ -485,9 +506,10 @@ export default function MusicPage() {
                 bottom: 0,
                 zIndex: 1000,
                 backgroundColor: "rgba(0, 0, 0, 0.95)",
-                overflow: "hidden",
-                padding: "20px",
+                overflow: "auto",
+                padding: "clamp(10px, 5vw, 20px)",
                 pointerEvents: "auto",
+                WebkitOverflowScrolling: "touch",
               }}
             >
               <div
@@ -496,12 +518,14 @@ export default function MusicPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  padding: "20px 0",
+                  padding: "clamp(10px, 4vw, 20px) 0",
                   borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
                   position: "sticky",
                   top: 0,
                   backgroundColor: "rgba(0, 0, 0, 0.95)",
                   zIndex: 1001,
+                  flexWrap: "wrap",
+                  gap: "clamp(10px, 3vh, 15px)",
                 }}
               >
                 <h2 style={{ color: "#fff", margin: 0 }}>DISCOGRAPHY</h2>
@@ -513,12 +537,15 @@ export default function MusicPage() {
                     toggleEffect();
                   }}
                   style={{
-                    padding: "8px 16px",
-                    backgroundColor: "transparent",
+                    padding: "clamp(8px, 2vw, 12px) clamp(12px, 4vw, 20px)",
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
                     border: "1px solid white",
                     color: "white",
                     cursor: "pointer",
-                    borderRadius: "4px",
+                    borderRadius: "8px",
+                    fontSize: "clamp(14px, 3.5vw, 16px)",
+                    fontWeight: "bold",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   ← BACK TO MUSIC
@@ -530,11 +557,12 @@ export default function MusicPage() {
                 style={{
                   overflowY: "auto",
                   overflowX: "hidden",
-                  height: "calc(100vh - 100px)",
-                  padding: "20px 0",
+                  height: "calc(100vh - clamp(80px, 20vh, 100px))",
+                  padding: "clamp(10px, 4vw, 20px) 0",
                   position: "relative",
                   pointerEvents: "auto",
                   WebkitOverflowScrolling: "touch",
+                  paddingBottom: "80px", // Space for audio player
                 }}
               >
                 <div
@@ -556,10 +584,11 @@ export default function MusicPage() {
                     style={{
                       display: "grid",
                       gridTemplateColumns:
-                        "repeat(auto-fill, minmax(250px, 1fr))",
-                      gap: "20px",
-                      padding: "10px",
+                        "repeat(auto-fill, minmax(clamp(150px, 40vw, 250px), 1fr))",
+                      gap: "clamp(10px, 3vw, 20px)",
+                      padding: "clamp(5px, 2vw, 10px)",
                       pointerEvents: "auto",
+                      width: "100%",
                     }}
                   >
                     {albums.map((album) => (
@@ -592,9 +621,10 @@ export default function MusicPage() {
                     style={{
                       display: "grid",
                       gridTemplateColumns:
-                        "repeat(auto-fill, minmax(250px, 1fr))",
-                      gap: "20px",
-                      padding: "10px",
+                        "repeat(auto-fill, minmax(clamp(150px, 40vw, 250px), 1fr))",
+                      gap: "clamp(10px, 3vw, 20px)",
+                      padding: "clamp(5px, 2vw, 10px)",
+                      width: "100%",
                     }}
                   >
                     {eps.map((ep) => (
@@ -638,11 +668,11 @@ export default function MusicPage() {
 
         @media (max-width: 768px) {
           .interactive {
-            padding: 30px;
+            padding: clamp(15px, 5vw, 30px);
           }
 
           .interactive-title {
-            padding: 15px 30px !important;
+            padding: clamp(10px, 4vw, 15px) clamp(15px, 6vw, 30px) !important;
           }
 
           .interactive::before {
@@ -664,6 +694,40 @@ export default function MusicPage() {
 
           .interactive:active::before {
             opacity: 1;
+          }
+
+          .discography-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+          }
+
+          .discography-header h2 {
+            margin-bottom: 10px;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+          }
+
+          .discography-back {
+            width: 100%;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+          }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 480px) {
+          .discography-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+
+          .discography-header h2 {
+            font-size: 1.3rem;
+          }
+
+          .discography-back {
+            font-size: 0.9rem;
+            padding: 6px 12px !important;
           }
         }
       `}</style>

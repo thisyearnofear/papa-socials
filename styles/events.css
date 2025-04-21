@@ -3,8 +3,8 @@
 /* Ensure the button is visible on the events page */
 .cover__button {
   position: relative;
-  padding: 16px 32px;
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  padding: clamp(12px, 4vw, 16px) clamp(20px, 8vw, 32px);
+  font-size: clamp(0.9rem, 4vw, 1.25rem);
   font-weight: 600;
   letter-spacing: 0.05em;
   background: rgba(255, 255, 255, 0.1);
@@ -17,12 +17,15 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  margin: 20px auto;
+  margin: clamp(15px, 5vh, 30px) auto;
   display: block;
   z-index: 9999;
   pointer-events: auto;
   visibility: visible;
   opacity: 1;
+  width: fit-content;
+  min-width: clamp(180px, 60vw, 240px);
+  max-width: 90vw;
 }
 .papa-events-container {
   position: fixed !important;
@@ -35,11 +38,13 @@
   -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
   overflow-y: auto;
-  padding: 20px;
+  overflow-x: hidden;
+  padding: clamp(10px, 5vw, 20px);
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Header styling */
@@ -247,29 +252,46 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .papa-events-container {
-    padding: 15px;
+    padding: clamp(10px, 4vw, 15px);
   }
 
   .papa-event-image-wrapper {
-    height: 250px !important;
+    height: clamp(180px, 40vw, 250px) !important;
   }
 
   .papa-event-info {
-    padding: 15px;
+    padding: clamp(10px, 4vw, 15px);
   }
 
   .papa-event-date {
-    padding: 10px 20px;
+    padding: clamp(8px, 3vw, 10px) clamp(15px, 5vw, 20px);
+    margin-bottom: clamp(10px, 3vh, 20px);
   }
 
   .papa-event-details h3 {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
+    margin-bottom: clamp(8px, 2vh, 15px);
   }
 
   .papa-event-location,
   .papa-event-time,
   .papa-event-description {
-    font-size: 0.9rem;
+    font-size: clamp(0.8rem, 3.5vw, 0.9rem);
+    margin-bottom: clamp(5px, 1.5vh, 10px);
+  }
+
+  .papa-event-tickets {
+    padding: clamp(8px, 3vw, 12px) clamp(20px, 6vw, 30px);
+    font-size: clamp(0.8rem, 3.5vw, 1rem);
+  }
+
+  .papa-support-info {
+    margin-top: clamp(30px, 8vh, 60px);
+    padding: clamp(20px, 5vw, 30px) clamp(10px, 4vw, 20px);
+  }
+
+  .papa-support-text {
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
   }
 }
 
@@ -278,19 +300,51 @@
   .papa-events-header {
     flex-direction: column;
     align-items: center;
+    padding: 15px 0;
+    margin-bottom: 15px;
   }
 
   .papa-events-back {
     width: 100%;
     justify-content: center;
+    font-size: 0.9rem;
+    padding: 8px 15px;
   }
 
   .papa-event-image-wrapper {
-    height: 200px !important;
+    height: 160px !important;
   }
 
   .papa-event-date {
     flex-direction: column;
     gap: 5px;
+    padding: 8px 15px;
+  }
+
+  .papa-event-month {
+    font-size: 1rem;
+  }
+
+  .papa-event-day {
+    font-size: 1.3rem;
+  }
+
+  .papa-event-year {
+    font-size: 1rem;
+  }
+
+  .papa-event-details h3 {
+    font-size: 1.3rem;
+  }
+
+  .papa-event-tickets {
+    padding: 8px 15px;
+    font-size: 0.8rem;
+    max-width: 180px;
+  }
+
+  /* Add bottom padding to prevent content from being hidden behind the audio player */
+  .papa-events-container {
+    padding-bottom: 80px;
   }
 }

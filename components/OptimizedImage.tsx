@@ -202,7 +202,7 @@ export function OptimizedImage({
           }}
           sizes={
             props.sizes ||
-            "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            "(max-width: 480px) 100vw, (max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           }
           quality={quality}
           {...placeholderProps}
@@ -227,7 +227,7 @@ export function OptimizedImage({
       }}
       sizes={
         props.sizes ||
-        "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        "(max-width: 480px) 100vw, (max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       }
       quality={quality}
       {...placeholderProps}

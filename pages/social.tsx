@@ -473,6 +473,19 @@ export default function SocialPage() {
           {stage === "social" && (
             <motion.div
               className="social-feeds-container"
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+                backgroundColor: "rgba(0, 0, 0, 0.95)",
+                overflow: "auto",
+                padding: "clamp(10px, 5vw, 20px)", // Responsive padding
+                pointerEvents: "auto",
+                WebkitOverflowScrolling: "touch", // Smooth scrolling on iOS
+              }}
               initial={{
                 opacity: 0,
                 y: 50,
@@ -515,13 +528,18 @@ export default function SocialPage() {
                     position: "absolute",
                     right: "20px",
                     top: "20px",
-                    padding: "8px 16px",
-                    backgroundColor: "transparent",
+                    padding: "10px 20px",
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
                     border: "1px solid white",
                     color: "white",
                     cursor: "pointer",
-                    borderRadius: "4px",
+                    borderRadius: "8px",
                     zIndex: 1000,
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                    backdropFilter: "blur(5px)",
+                    WebkitBackdropFilter: "blur(5px)",
                   }}
                 >
                   Back
@@ -532,7 +550,18 @@ export default function SocialPage() {
               <div className="social-content">
                 <div className="social-section">
                   <h3>LATEST VIDEOS</h3>
-                  <div className="video-grid">
+                  <div
+                    className="video-grid"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(280px, 1fr))",
+                      gap: "clamp(10px, 5vw, 20px)",
+                      width: "100%",
+                      maxWidth: "1200px",
+                      margin: "0 auto",
+                    }}
+                  >
                     <div className="video-item">
                       <iframe
                         width="100%"
@@ -543,6 +572,11 @@ export default function SocialPage() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
+                        style={{
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                          maxHeight: "calc(100vw * 9 / 16)", // Maintain aspect ratio on small screens
+                        }}
                       ></iframe>
                       <h4>Music Videos</h4>
                     </div>
@@ -556,6 +590,11 @@ export default function SocialPage() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
+                        style={{
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                          maxHeight: "calc(100vw * 9 / 16)", // Maintain aspect ratio on small screens
+                        }}
                       ></iframe>
                       <h4>Live Performances</h4>
                     </div>
@@ -567,8 +606,15 @@ export default function SocialPage() {
                   <div className="instagram-container">
                     <iframe
                       src="https://embedsocial.com/api/pro_hashtag/b23de1b71f79c3f908e907fe03337529e3eb0f4b"
-                      width="900px"
-                      height="1200px"
+                      width="100%"
+                      height="600px"
+                      style={{
+                        maxWidth: "100%",
+                        border: "none",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                      }}
+                      title="Instagram Feed"
                     />
                   </div>
                 </div>

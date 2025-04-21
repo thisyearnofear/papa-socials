@@ -30,6 +30,9 @@ const ClientNavigation = ({ router }) => {
           href="https://linktr.ee/papajams"
           target="_blank"
           rel="noopener noreferrer"
+          style={{
+            marginRight: isMobile ? "50px" : "0",
+          }} /* Add margin on mobile to prevent overlap */
         >
           <span className="oh__inner">All Links</span>
           <svg width="18px" height="18px" viewBox="0 0 24 24">
@@ -194,6 +197,14 @@ export default function Navigation() {
       <div className="frame">
         <div className="frame__title">
           <h1 className="frame__title-main">PAPA</h1>
+          <a
+            className="frame__title-back"
+            href="https://linktr.ee/papajams"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="oh__inner">All Links</span>
+          </a>
         </div>
         <nav className="frame__demos">
           <span>Explore: </span>

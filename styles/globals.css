@@ -357,8 +357,9 @@ body .cover__button {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 8px; /* Increased padding for better touch target */
   z-index: 1001;
+  margin-right: 5px; /* Add some margin */
 }
 
 .hamburger span {
@@ -395,6 +396,8 @@ body .cover__button {
   z-index: 1000;
   transform: translateY(-100%);
   transition: transform 0.5s ease;
+  backdrop-filter: blur(5px); /* Add blur effect */
+  -webkit-backdrop-filter: blur(5px); /* Safari support */
 }
 
 .mobile-menu.is-open {
@@ -405,19 +408,35 @@ body .cover__button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem; /* Increased gap for better spacing */
 }
 
 .mobile-menu a {
   color: var(--color-link);
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* Increased font size */
   transition: color 0.3s ease;
+  padding: 10px 20px; /* Add padding for better touch target */
+  border-radius: 8px; /* Add border radius */
+  position: relative; /* For active indicator */
 }
 
 .mobile-menu a:hover,
 .mobile-menu a.active {
   color: var(--color-link-hover);
+  background-color: rgba(255, 255, 255, 0.1); /* Add background on hover/active */
+}
+
+.mobile-menu a.active::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  background-color: var(--color-link-hover);
+  border-radius: 1px;
 }
 
 /* Responsive styles */
@@ -426,15 +445,51 @@ body .cover__button {
     padding: 1rem;
     text-align: center;
     flex-wrap: wrap;
+    height: auto; /* Allow height to adjust */
+    position: relative; /* Ensure proper stacking */
   }
 
   .frame__title {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; /* Reduced margin */
+    display: flex;
+    justify-content: flex-start; /* Changed from space-between to flex-start */
+    align-items: center;
+    position: relative; /* Added for absolute positioning of children */
+  }
+
+  .frame__title-main {
+    font-size: 1.8rem; /* Larger title */
+    margin-right: 0.5rem; /* Small margin for separation */
+  }
+
+  .frame__title-back {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100px; /* Limit width */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .frame__title-back svg {
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
   }
 
   .frame__prev {
-    margin: 0 auto 1rem;
+    margin: 0.5rem auto; /* Reduced margin */
+    font-size: 0.9rem; /* Smaller font */
+    padding: 0.4rem 0.8rem; /* Add padding */
+    background: rgba(255, 255, 255, 0.1); /* Add background */
+    border-radius: 4px; /* Add border radius */
+    backdrop-filter: blur(5px); /* Add blur effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
   }
 
   .frame__demos {
@@ -443,12 +498,17 @@ body .cover__button {
 
   .mobile-nav {
     display: block;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 1010; /* Ensure it's above other elements */
   }
 
   .social-links {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.8rem;
+    padding-bottom: env(safe-area-inset-bottom, 20px); /* Add safe area for notched phones */
   }
 
   .social-links a {
@@ -460,10 +520,48 @@ body .cover__button {
     max-width: 85vw;
     font-size: 1.2rem;
     padding: 1rem 1.5rem;
+    margin: 1rem auto; /* Consistent margin */
   }
 
   .slides {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+    grid-gap: 10px; /* Smaller gap */
+    padding: 10px; /* Smaller padding */
+  }
+
+  /* Ensure content doesn't overlap with fixed elements */
+  .layout {
+    padding-top: 70px; /* Space for header */
+    padding-bottom: 80px; /* Space for audio player */
+  }
+}
+
+/* Extra small devices */
+@media screen and (max-width: 480px) {
+  .frame__title-main {
+    font-size: 1.5rem; /* Smaller title on very small screens */
+  }
+
+  .frame__title-back {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    max-width: 80px; /* Even smaller on tiny screens */
+  }
+
+  .frame__prev {
+    font-size: 0.8rem; /* Even smaller font */
+    padding: 0.3rem 0.6rem; /* Smaller padding */
+  }
+
+  .slides {
+    grid-template-columns: repeat(2, 1fr); /* Keep 2 columns */
+    grid-gap: 8px; /* Even smaller gap */
+    padding: 8px; /* Even smaller padding */
+  }
+
+  .cover__description {
+    font-size: 1rem; /* Smaller font */
+    padding: 0.8rem 1rem; /* Smaller padding */
   }
 }
 
