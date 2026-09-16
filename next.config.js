@@ -1,23 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Vercel: use standalone tracing to reduce function size
+  output: "standalone",
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Reduced from 7+8 sizes to 3+3 — cuts .next/cache/images ~70%
+    deviceSizes: [640, 1080, 1920],
+    imageSizes: [64, 128, 256],
+    minimumCacheTTL: 31536000, // 1 year — avoid re-generating every 60s
+    dangerouslyAllowSVG: false,
+    contentDispositionType: "inline",
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
+      { protocol: "https", hostname: "w3s.link" },
+      { protocol: "https", hostname: "**.ipfs.io" },
+      { protocol: "https", hostname: "**.pinata.cloud" },
+      { protocol: "https", hostname: "dweb.link" },
+      { protocol: "https", hostname: "gateway.pinata.cloud" },
     ],
-    path: "/_next/image",
-    loader: "default",
-    disableStaticImages: false,
-    domains: [],
   },
   compress: true,
   async headers() {
@@ -43,12 +43,8 @@ const nextConfig = {
       },
     ];
   },
+  // Grove/Lens storage uses native fetch — no Node polyfills needed
   webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      crypto: require.resolve("crypto-browserify"),
-      stream: require.resolve("stream-browserify"),
-    };
     return config;
   },
 };

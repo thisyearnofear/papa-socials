@@ -13,14 +13,9 @@ export default function Document() {
         />
         <link rel="preconnect" href="https://use.typekit.net" />
 
-        {/* External Scripts */}
+        {/* GSAP via npm (hooks/useClipAnimation.tsx dynamic import) — removed duplicate CDN. Splitting kept via CDN (small, no npm import in codebase) */}
         <script
           src="https://unpkg.com/splitting/dist/splitting.min.js"
-          async
-          defer
-        ></script>
-        <script
-          src="https://unpkg.com/gsap@3.11.5/dist/gsap.min.js"
           async
           defer
         ></script>

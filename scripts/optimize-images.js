@@ -1,19 +1,14 @@
+// DEPRECATED: Manual `public/optimized` pipeline removed for Vercel efficiency.
+// Next.js `next/image` (see `components/OptimizedImage.tsx` + `next.config.js:images`)
+// now handles AVIF/WebP generation on-demand with caching (TTL 1y).
+// This script is kept for `npm run optimize-images` local debugging only — it no longer runs on `prebuild`.
 const sharp = require('sharp');
 const fs = require('fs').promises;
 const path = require('path');
-const rimraf = require('rimraf'); // Add this to your dependencies if not present
 
-// Function to clear directory
-function clearDirectory(directory) {
-  return new Promise((resolve, reject) => {
-    rimraf(directory, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
+// Node 18+ native rm — replaces `rimraf` dep
+async function clearDirectory(directory) {
+  await fs.rm(directory, { recursive: true, force: true });
 }
 
 const QUALITY = {

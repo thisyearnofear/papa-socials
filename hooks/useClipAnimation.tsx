@@ -75,11 +75,11 @@ export interface CustomAnimationOptions {
 
 // Return type of the useClipAnimation hook
 export interface ClipAnimationReturn {
-  // Refs for animation elements
-  clipRef: RefObject<HTMLDivElement | null>;
-  clipImageRef: RefObject<HTMLDivElement | null>;
-  slidesRef: RefObject<HTMLDivElement | null>;
-  titleRef: RefObject<HTMLHeadingElement | null>;
+  // Refs for animation elements — use `RefObject<T>` (current is T | null by definition in React 18+)
+  clipRef: RefObject<HTMLDivElement>;
+  clipImageRef: RefObject<HTMLDivElement>;
+  slidesRef: RefObject<HTMLDivElement>;
+  titleRef: RefObject<HTMLHeadingElement>;
 
   // Animation control functions
   toggleEffect: (customOptions?: CustomAnimationOptions) => void;
@@ -177,11 +177,11 @@ export function useClipAnimation(
     }
   }, [animationOptions.gridToContent.contentSelector, stages]);
 
-  // Refs for animation elements
-  const clipRef = useRef<HTMLDivElement>(null);
-  const clipImageRef = useRef<HTMLDivElement>(null);
-  const slidesRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
+  // Refs for animation elements — cast to match RefObject<T> (current nullable by type)
+  const clipRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>;
+  const clipImageRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>;
+  const slidesRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>;
+  const titleRef = useRef<HTMLHeadingElement>(null) as RefObject<HTMLHeadingElement>;
 
   // State management
   const [stage, setStage] = useState<string>(initialStage);
