@@ -1,21 +1,23 @@
 import React, { useRef, useEffect, useState } from "react";
 
+// Grove-hosted audio — 12M offloaded from Vercel static to Lens Grove (chain 232, immutable)
+// lens:// URIs resolve via https://api.grove.storage gateway for browsers
 const tracks = [
   {
     title: "Map",
-    src: "/uploads/Map.mp3",
+    src: "https://api.grove.storage/9042e9c0c8828b2b6de1dab2fce20dc7c5cc1a1f7979371a6243b040584edecd",
   },
   {
     title: "Freedom Blues",
-    src: "/uploads/Freedom blues - 19.02.20.mp3",
+    src: "https://api.grove.storage/fc0657a7b62a81962a74df142bc93738e930eb0840bc44d927ba2c8395352767",
   },
   {
     title: "El Chupa",
-    src: "/uploads/El-Chupa.mp3",
+    src: "https://api.grove.storage/e592f43f8f643eb2befdb9dd58fee6a2c609bd5bbcbe8b335d278e4d3e5b42e8",
   },
   {
     title: "Princess Eileen",
-    src: "/uploads/Princess Eileen - 19.02.20.mp3",
+    src: "https://api.grove.storage/7258c039a172d9a0679c6e80734a56508e40f3939edfb8cc037048150d51d385",
   },
 ];
 
